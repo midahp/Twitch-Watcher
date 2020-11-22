@@ -1,31 +1,26 @@
+import {browser} from '../api/webextension.js';
+
+
 class Storage{
     constructor(){
 
     }
 
-    export(){
+    getAllData(){
         let msg = {
             "op": "getAllData",
         }
-        return this.sendToBg(msg, true).then(storedData=>{
-            return JSON.stringify(storedData)
+        return this.sendToBg(msg, true).then(data=>{
+            return data;
         });
     }
 
-    import(s){
-        let locS
-        try{
-            locS = JSON.parse(s);
-        }
-        catch(e){
-            return false;
-        }
+    setAllData(data){
         let msg = {
             "op": "setAllData",
-            "data": locS,
+            "data": data,
         }
         this.sendToBg(msg, false);
-        return true;
     }
 
     
@@ -33,14 +28,14 @@ class Storage{
         msg.event = "storage";
         if (expectResponse){
             let p = new Promise(resolve=>{
-                chrome.runtime.sendMessage(msg, response => {
+                browser.runtime.sendMessage(msg, response => {
                     resolve(response);
                 });
             });
             return p;
         }
         else{
-            chrome.runtime.sendMessage(msg);
+            browser.runtime.sendMessage(msg);
         }
     }
 
@@ -61,51 +56,74 @@ class Storage{
         return this.sendToBg(msg, true);
     }
 
-    
-
-    setLastChatPos(left, top){
-        this.setItem("lastChatPos", {"left": left, "top": top});
+    getMultiple(keys){
+        let msg = {
+            "op": "getMultiple",
+            "keys": keys,
+        }
+        return this.sendToBg(msg, true);
     }
 
-    getLastChatPos(){
-        return this.getItem("lastChatPos");
+    setMultiple(obj){
+        let msg = {
+            "op": "setMultiple",
+            "obj": obj,
+        }
+        return this.sendToBg(msg, false);
     }
 
-    setLastChatDim(width, height){
-        this.setItem("lastChatDim", {"width": width, "height": height});
+    getNested(pathArr){
+        let msg = {
+            "op": "getNested",
+            "pathArr": pathArr,
+        }
+        return this.sendToBg(msg, true);
     }
 
-    getLastChatDim(){
-        return this.getItem("lastChatDim");
+    setNested(pathArr, value){
+        let msg = {
+            "op": "setNested",
+            "pathArr": pathArr,
+            "value": value,
+        }
+        return this.sendToBg(msg, false);
     }
 
-    getLastSetQuality(){
-        return this.getItem("lastSetQuality");
-    }
-    setLastSetQuality(quality){
-        return this.setItem("lastSetQuality", quality);
-    }
-    getLastSetVolume(){
-        return this.getItem("lastSetVolume");
-    }
-    setLastSetVolume(volume){
-        return this.setItem("lastSetVolume", volume);
-    }
-
-    setFav(channel){
+    setFav(ident, type){
         let msg = {
             "op": "setFav",
-            "channel": channel,
+            "ident": ident,
+            "type": type,
         }
         this.sendToBg(msg, false);
     }
 
-    unsetFav(channel){
+    setFavs(identArr, type){
         let msg = {
-            "op": "unsetFav",
-            "channel": channel,
+            "op": "setFavs",
+            "identArr": identArr,
+            "type": type,
         }
         this.sendToBg(msg, false);
+    }
+
+
+    unsetFav(ident, type){
+        let msg = {
+            "op": "unsetFav",
+            "ident": ident,
+            "type": type,
+        }
+        this.sendToBg(msg, false);
+    }
+
+    isFaved(ident, type){
+        let msg = {
+            "op": "isFaved",
+            "ident": ident,
+            "type": type,
+        }
+        return this.sendToBg(msg, true);
     }
 
 
@@ -125,18 +143,18 @@ class Storage{
         }
         this.sendToBg(msg, false);
     }
-    getUserId(username){
+    getUser(id){
         let msg = {
-            "op": "getUserId",
-            "username": username,
+            "op": "getUser",
+            "id": id,
         }
         return this.sendToBg(msg, true);
     }
-    setUserId(username, id){
+    setUser(id, user){
         let msg = {
-            "op": "setUserId",
-            "username": username,
+            "op": "setUser",
             "id": id,
+            "user": user,
         }
         this.sendToBg(msg, false);
     }
@@ -158,6 +176,36 @@ class Storage{
             "op": "setGame",
             "game": game,
             "id": id,
+        }
+        this.sendToBg(msg, false);
+    }
+    addHiddenGame(id){
+        let msg = {
+            "op": "addHiddenGame",
+            "id": id,
+        }
+        this.sendToBg(msg, false);
+    }
+    removeHiddenGame(id){
+        let msg = {
+            "op": "removeHiddenGame",
+            "id": id,
+        }
+        this.sendToBg(msg, false);
+    }
+
+    getApiCache(id){
+        let msg = {
+            "op": "getApiCache",
+            "id": id,
+        }
+        return this.sendToBg(msg, true);
+    }
+    setApiCache(id, item){
+        let msg = {
+            "op": "setApiCache",
+            "id": id,
+            "item": item,
         }
         this.sendToBg(msg, false);
     }

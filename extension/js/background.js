@@ -1,3 +1,6 @@
+const browser = window.browser || window.chrome; 
+
+
 const fetchParams = {
     "headers": {
         "accept": "application/vnd.twitchtv.v5+json",
@@ -41,14 +44,14 @@ function getFirstPartyClientId(){
     });
 }
 
-function openList(){
-    console.log("test");
-    let newUrl = chrome.runtime.getURL("../list.html");
-    chrome.tabs.create({ url: newUrl });
+
+function openList(index){
+    let newUrl = browser.runtime.getURL("../list.html#/live");
+    browser.tabs.create({ index: index, url: newUrl });
 }
 function openPlayer(queryStr){
-    let newUrl = chrome.runtime.getURL("../player.html") + queryStr;
-    chrome.tabs.create({ url: newUrl });
+    let newUrl = browser.runtime.getURL("../player.html") + queryStr;
+    browser.tabs.create({ url: newUrl });
 }
 
 const twitchRegex = /twitch.tv\/([^\/]*)\/?(\d*)\??.*?(t=)?(\d*)?h?(\d*)?m?(\d*)?s?/;
@@ -79,8 +82,8 @@ function vodUrlToPlayerQueryString(vodUrl){
     }
 }
 
-chrome.browserAction.onClicked.addListener(function(tab) {
-    chrome.tabs.getSelected(tab=>{
+browser.browserAction.onClicked.addListener(function(tab) {
+    browser.tabs.getSelected(tab=>{
         if(tab.url){
             if (tab.url.startsWith("https://clips.twitch.tv")){
                 let slug = tab.url.split("/")[3];
@@ -98,39 +101,79 @@ chrome.browserAction.onClicked.addListener(function(tab) {
                 return;
             }
         }
-        openList();
+        openList(tab.index+1);
     });
 });
-chrome.runtime.onInstalled.addListener(function (object) {
-    if(chrome.runtime.OnInstalledReason.INSTALL === object.reason){
+browser.runtime.onInstalled.addListener(function (object) {
+    if(browser.runtime.OnInstalledReason.INSTALL === object.reason){
         openList();   
     }
 });
+
+
+const defaultData = {
+    "lastSetLangCode": "",
+    "users": {},
+    "games": {},
+    "resumePositions": {},
+    "hiddenGames": {},
+    "lastChatPos": {left:0,top:0},
+    "lastChatDim": {width: "300px", height: "500px"},
+    "lastSetQuality": "Auto",
+    "watchlater": [],
+    "favourites": {
+        "games": {}, //these are objects because set cant be serialized; only the keys will be used
+        "users": {},
+    },
+};
 
 let ready = false;
 class Storage{
     constructor(){
         this.maxResumePositions = 10000;
-        this.maxFavourites = 200;
-        this.data = {
-            "userIds": {},
-            "games": {},
-            "resumePositions": {},
-            "lastChatPos": {left:0,top:0},
-            "lastChatDim": {width: "300px", height: "500px"},
-            "lastSetQuality": "Auto",
-            "watchlater": [],
-            "favourites": [],
-        }
-        chrome.storage.local.get(null, storedData=>{
+        this.needsSaving = new Set();
+        this.data = defaultData;
+        browser.storage.local.get(null, storedData=>{
             Object.assign(this.data, storedData);
-            this.cleanResumePositions();
+            this.cleanStorage();
             ready = true;
         });
+        // this.clearStorage()
+        this.events();
     }
 
+    clearStorage(){
+        this.data = defaultData;
+        browser.storage.local.set(this.data);
+    }
 
-    cleanResumePositions(){
+    saveStorage(obj){
+        // console.log(`saving: ${Object.keys(obj)}`);
+        browser.storage.local.set(obj);
+    }
+    save(key, val){
+        this.data[key] = val;
+        saveStorage({key: storage.data[key]});
+    }
+
+    saveQueued(){
+        if (!this.needsSaving.size) return;
+        let name;
+        const storeObj = {};
+        for(name of this.needsSaving){
+            storeObj[name] = this.data[name];
+        }
+        this.needsSaving.clear();
+        this.saveStorage(storeObj);
+    }
+
+    events(){
+        const updateStorageInterval = setInterval(()=>{
+            this.saveQueued();
+        }, 30*1000);
+    }
+
+    cleanStorage(){
         let positions = this.data["resumePositions"];
         let positionsArr = Object.keys(positions).sort((p1,p2)=>{
             return parseInt(p1)-parseInt(p2);
@@ -141,85 +184,135 @@ class Storage{
                 delete positions[id];
             }
         }
+
     }
 
-    setFav(channel){
+    setFav({ident, type="users"}={}){
         let favs = this.data["favourites"];
-        let index = favs.indexOf(channel);
-        if(index<0){
-            favs.unshift(channel);
-            if(favs.length > this.maxFavourites){
-                favs.pop();
-            }
-        }
-        else{
-            console.error("tried to set already existing favourite");
-        }
+        favs[type][ident] = true;
+        this.saveStorage({"favourites": favs});
     }
 
-    unsetFav(channel){
+    setFavs({identArr, type="users"}={}){
         let favs = this.data["favourites"];
-        let index = favs.indexOf(channel);
-        if(index>=0){
-            favs.splice(index, 1);
+        let ident;
+        for(ident of identArr){
+            favs[type][ident] = true;
         }
-        else{
-            console.error("tried to remove non existing favourite");
-        }
+        this.saveStorage({"favourites": favs});
+    }
+
+    unsetFav({ident, type="users"}={}){
+        let favs = this.data["favourites"];
+        delete favs[type][ident]
+        this.saveStorage({"favourites": favs});
     }
 }
 const storage = new Storage();
 
-chrome.runtime.onSuspend.addListener(function() {
-    chrome.storage.local.set(storage.data);
+browser.runtime.onSuspend.addListener(function() {
+    storage.saveQueued();
 });
 
-const updateStorageInterval = setInterval(()=>{
-    chrome.storage.local.set(storage.data);
-}, 60*1000);
+const CACHE_TIMEOUT = 1000 * 60 * 1;
+class ApiCache{
+    constructor(){
+        this.cache = {};
+        this.timeouts = {};
+    }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    getItem(id){
+        return this.cache[id];
+    }
+
+    setItem(id, item){
+        clearTimeout(this.timeouts[id]);
+        this.cache[id] = item;
+        this.timeouts[id] = setTimeout(()=>{
+            delete this.cache[id];
+        }, CACHE_TIMEOUT);
+    }
+}
+
+const apiCache = new ApiCache();
+
+
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.event === "storage"){
-        if (request.op === "get"){
-            sendResponse(storage.data[request.key]);
+        switch(request.op){
+            case "get":
+                sendResponse(storage.data[request.key]);
+                break;
+            case "set":
+                storage.data[request.key] = request.val;
+                storage.needsSaving.add(request.key);
+                break;
+            case "getMultiple":
+                let key;
+                const obj = {};
+                for(key of request.keys){
+                    obj[key] = storage.data[key];
+                }
+                sendResponse(obj);
+                break;
+            case "getResumePoint":
+                sendResponse(storage.data["resumePositions"][request.vid]);
+                break;
+            case "setResumePoint":
+                storage.data.resumePositions[request.vid] = request.secs;
+                storage.needsSaving.add("resumePositions");
+                break;
+            case "setFav":
+                storage.setFav(request);
+                break;
+            case "setFavs":
+                storage.setFavs(request);
+                break;
+            case "unsetFav":
+                storage.unsetFav(request);
+                break;
+            case "isFaved":
+                sendResponse(storage.data["favourites"][request.type][request.ident]);
+                break;
+            case "getUser":
+                sendResponse(storage.data["users"][request.id]);
+                break;
+            case "setUser":
+                storage.data["users"][request.id] = request.user;
+                storage.needsSaving.add("users");
+                break;
+            case "getApiCache":
+                sendResponse(apiCache.getItem(request.id));
+                break;
+            case "setApiCache":
+                apiCache.setItem(request.id, request.item);
+                break;
+            case "addHiddenGame":
+                storage.data["hiddenGames"][request.id] = true;
+                storage.saveStorage({"hiddenGames": storage.data.hiddenGames});
+                break;
+            case "removeHiddenGame":
+                delete storage.data["hiddenGames"][request.id];
+                storage.saveStorage({"hiddenGames": storage.data.hiddenGames});
+                break;
+            case "getGames":
+                sendResponse(storage.data["games"]);
+                break;
+            case "getGame":
+                sendResponse(storage.data["games"][request.id]);
+                break;
+            case "setGame":
+                storage.data["games"][request.id] = request.game;
+                storage.needsSaving.add("games");
+                break;
+            case "setAllData":
+                storage.save(request.data);
+                storage.needsSaving.clear();
+                break;
+            case "getAllData":
+                sendResponse(storage.data);
+                break;
         }
-        else if (request.op === "set"){
-            storage.data[request.key] = request.val;
-        }
-        else if (request.op === "getResumePoint"){
-            sendResponse(storage.data["resumePositions"][request.vid]);
-        }
-        else if (request.op === "setResumePoint"){
-            storage.data["resumePositions"][request.vid] = request.secs;
-        }
-        else if (request.op === "setFav"){
-            storage.setFav(request.channel);
-        }
-        else if (request.op === "unsetFav"){
-            storage.unsetFav(request.channel);
-        }
-        else if (request.op === "getUserId"){
-            sendResponse(storage.data["userIds"][request.username]);
-        }
-        else if (request.op === "setUserId"){
-            storage.data["userIds"][request.username] = request.id;
-        }
-        else if (request.op === "getGames"){
-            sendResponse(storage.data["games"]);
-        }
-        else if (request.op === "getGame"){
-            sendResponse(storage.data["games"][request.id]);
-        }
-        else if (request.op === "setGame"){
-            storage.data["games"][request.id] = request.game;
-        }
-        else if (request.op === "setAllData"){
-            storage.data = request.data;
-        }
-        else if (request.op === "getAllData"){
-            sendResponse(storage.data);
-        }
-           
     }
     else if (request.event === "readyCheck"){
         sendResponse(ready);

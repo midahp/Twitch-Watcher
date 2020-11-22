@@ -1,0 +1,8 @@
+[
+    {
+      "id": 1,
+      "priority": 1,
+      "action": { "type": "redirect", "redirect": { "extensionPath": "/list.html" } },
+      "condition": { "urlFilter": "www.twitch.simple/|", "resourceTypes": ["main_frame"] }
+    }
+]

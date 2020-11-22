@@ -1,9 +1,10 @@
 import {settings} from '../settings.js';
 import {storage} from './storage.js';
 import {Dialog} from './dialog.js';
-import {colors} from './colors.js';
-import {v5Api} from '../api/v5.js';
+import {browser} from '../api/webextension.js';
 
+
+const preloadingImagesArray = Array(10);
 
 const htmlEntities = {
     '<': '&lt;',
@@ -100,18 +101,23 @@ class FixedSizeArray{
 class Utility{
     constructor(){
         this.storage = storage;
-        this.colors = colors;
         this.dialog = new Dialog();
         this.ready = this.checkReady();
     }
 
+    preloadImages(urls, baseUrl=""){
+        for (let i in urls){
+            let url = urls[i];
+            preloadingImagesArray[i] = new Image();
+            preloadingImagesArray[i].src = baseUrl + url;
+        }
+    }
 
-
-    checkReady(){
+    async checkReady(){
         let msg = {"event": "readyCheck"};
         let p = new Promise(resolve=>{
             let fn = ()=>{
-                chrome.runtime.sendMessage(msg, response => {
+                browser.runtime.sendMessage(msg, response => {
                     if (response){
                         resolve();
                     }
@@ -123,67 +129,48 @@ class Utility{
             fn();
 
         });
-        return p.then(()=>{
-            return this.getClientId();
-        });
+        await p;
+        return this.getClientId();
+
     }
 
-    import(){
-        this.dialog.promptFile("Please select exported file").then(reader=>{
-            if(reader){
-                reader.onload = ()=>{
-                    let importString = reader.result;
-                    let success = this.storage.import(importString);
-                    let returnMsg;
-                    if(success){
-                        returnMsg = "successfully imported settings";
-                    }
-                    else{
-                        returnMsg = "could not import settings";
-                    }
-                    setTimeout(e=>{
-                        this.dialog.alert(returnMsg);
-                    }, 100);
-                };
-            }
-        });
+    async import(){
+        let reader = await this.dialog.promptFile("Please select exported file");
+        if(reader){
+            reader.onload = ()=>{
+                let data = false;
+
+                let importString = reader.result;
+                try{
+                    data = JSON.parse(importString);
+                }
+                catch(e){
+                }
+
+                let returnMsg;
+                if (data){
+                    this.storage.setAllData(data);
+                    returnMsg = "Successfully imported settings. Reload the page to see changes.";
+                }
+                else{
+                    returnMsg = "Could not import settings. The imported file seems to be not valid JSON.";
+                }
+                setTimeout(e=>{
+                    this.dialog.alert(returnMsg);
+                }, 100);
+            };
+        }
     }
 
-    importFollows(){
-        let p = this.dialog.prompt("Please enter your username");
-        p = p.then(username=>{
-            if(username && username.length){
-                return this.getUserFollows(username);
-            }
-            else{
-                return false;
-            }
-        });
-        p = p.then(names=>{
-            let returnMsg;
-            if(names){
-                returnMsg = "successfully imported follows";
-            }
-            else{
-                returnMsg = "could not import follows";
-            }
-            setTimeout(e=>{
-                this.dialog.alert(returnMsg);
-            }, 100);
-            return names;
-        });
-        return p;
-    }
-
-    export(){
-        this.storage.export().then(s=>{
-            let a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([s], {type: 'text'}));
-            a.download = 'export.txt';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        });
+    async export(){
+        let data = await this.storage.getAllData();
+        let s = JSON.stringify(data, null, 2);
+        let a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([s], {type: 'application/json'}));
+        a.download = 'export.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 
 
@@ -192,69 +179,39 @@ class Utility{
             console.log(...objs);
         }
     }
-
-    getUserFollows(username, limit=25){
-        return this.getUid(username).then(uid=>{
-            return v5Api.follows(uid, limit);
-        }).then(json=>{
-            if(json && json.follows && json.follows.length){
-                return json.follows.map(i=>i.channel.display_name);
-            }
-            else{
-                return false;
-            }
-        });
+    logError(...objs){
+        if(settings.DEBUG){
+            console.error(...objs);
+        }
     }
 
-    getUid(name){
-        return this.storage.getUserId(name).then(id=>{
-            if (id){
-                console.log("got uid from storage:", name, id);
-                return id;
-            }
-            else{
-                return v5Api.userID(name).then(json=>{
-                    if(json && json.users && json.users.length){
-                        id = json.users[0]["_id"];
-                        this.storage.setUserId(name, id);
-                        return id;
-                    }
-                    else{
-                        return false;
-                    }
-                });
-            }
-        });
+    onlyAscii(str){
+        return str.replace(/[^\x00-\x7F]/g, "");
     }
 
-
-
-    promptClientId(){
+    async promptClientId(){
         const promptText = "Please enter a valid twitch.tv Client ID or OAuth";
-        const entered = this.dialog.prompt(promptText);
-        entered.then(val=>{
-            if (val !== null) {
-                if(val.startsWith("oauth:")){
-                    let token = val.substring(6);
-                    this.clientIdFromOauth(token);
-                }
-                else{
-                    this.setClientId(val);
-                }
+        let val = await this.dialog.prompt(promptText);
+        if (val !== null) {
+            if(val.startsWith("oauth:")){
+                let token = val.substring(6);
+                this.clientIdFromOauth(token);
             }
-        });
+            else{
+                this.setClientId(val);
+            }
+        }
     }
 
-    clientIdFromOauth(token){
+    async clientIdFromOauth(token){
         const url = "https://id.twitch.tv/oauth2/validate";
         const params = {
             headers: {"Authorization": `OAuth ${token}`},
         }
-        this.fetch(url, "json", params).then(json=>{
-            if(json && json.client_id){
-                this.setClientId(json.client_id);
-            }
-        });
+        let json = await this.fetch(url, "json", params);
+        if(json && json.client_id){
+            this.setClientId(json.client_id);
+        }
     }
 
     setClientId(clientId){
@@ -262,45 +219,42 @@ class Utility{
         settings.clientId = clientId;
     }
 
-    getClientId(){
-        return this.storage.getItem("clientId").then(storageClientId=>{
-            const clientId =  settings.clientId || storageClientId;
-            if(clientId && clientId.length){
-                settings.clientId = clientId;
-            }
-            else{
-                this.promptClientId();
-            }
-        });
-    }
-
-    fetch(url, format="json", params){
-        if(params === undefined){params = {};}
-        let promise = fetch(url, params);
-        if(format === "json"){
-            promise = promise.then(r=>{
-                if(r.ok){
-                    return r.json();
-                }
-                else{
-                    return null;
-                }
-            });
+    async getClientId(){
+        let storageClientId = await this.storage.getItem("clientId");
+        const clientId =  settings.clientId || storageClientId;
+        if(clientId && clientId.length){
+            settings.clientId = clientId;
         }
         else{
-            promise = promise.then(r=>{
-                if(r.ok){
-                    return r.text();
-                }
-                else{
-                    return null;
-                }
-            }); 
+            this.promptClientId();
         }
-        promise = promise.catch(error => {
-            console.error(`Fetch Error on url: ${url}\n ${error}`);
-        });
-        return promise;
+    }
+
+    async fetch(url, format="json", params){
+        if(params === undefined){
+            params = {};
+        }
+        let r;
+        try{
+            r = await fetch(url, params);
+        }
+        catch(err){
+            this.logError(`Fetch Error:
+                url: ${url}
+                params: ${JSON.stringify(params)}
+                error: ${err}
+            `);
+            return null;
+        }
+        if (!r.ok){
+            return null;
+        }
+        if(format === "json"){
+            return await r.json();
+        }
+        else{
+            return r.text();
+        }
     }
 
     objToMap(obj){
@@ -425,6 +379,10 @@ class Utility{
         return result;
     }
 
+    readableNumber(number){
+        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
     getStrToObj(){
         let obj = {};
         let key, val;
@@ -451,15 +409,22 @@ class Utility{
         return "?" + arr.join("&");
     }
 
-    isElementInViewport(el) {
-        let rect = el.getBoundingClientRect();
+    // isElementInViewport(el) {
+    //     let rect = el.getBoundingClientRect();
 
-        return (
-            rect.top >= 0 &&
-            rect.left >= 0 &&
-            rect.bottom <= (window.innerHeight) &&
-            rect.right <= (window.innerWidth)
-        );
+    //     return (
+    //         rect.top >= 0 &&
+    //         rect.left >= 0 &&
+    //         rect.bottom <= (window.innerHeight) &&
+    //         rect.right <= (window.innerWidth)
+    //     );
+    // }
+
+    isElementInViewport(el, buffer=200) {
+        if(!el)return;
+        // instead of specifying a buffer, we should consider the element height
+        const rect = el.getBoundingClientRect();
+        return rect.top >= -1 * buffer && rect.bottom <= window.innerHeight + buffer;
     }
 
     getDocHeight() {
@@ -484,6 +449,26 @@ class Utility{
         return new Promise(resolve=>{
             resolve(p);
         });
+    }
+
+    async timedOutLoading(promise, timeoutInMs=10000){
+        document.body.classList.add("loading");
+        const result = await Promise.race(
+            new Promise((resolve, reject) => {
+                setTimeout(()=>{
+                    reject(`Timed out after ${timeoutInMs}ms`);
+                }, timeoutInMs);
+            }),
+            promise,
+        );
+        document.body.classList.remove("loading");
+        return result;
+    }
+
+    traverseObj(dottetPath, obj){
+        return dottetPath.split(".").reduce((accumulator, currentValue)=>{
+            return accumulator[currentValue];
+        }, obj);
     }
 
 }

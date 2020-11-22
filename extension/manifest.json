@@ -1,26 +1,33 @@
 {
-   "background": {
-        "scripts": ["js/background.js"],
-        "persistent": false
+    "background": {
+        "page": "js/background/background.html",
+        "persistent": true
     },
-    "content_scripts": [
-        {
-        "matches": [
-          "https://www.reddit.com/r/LivestreamFail/*"
-        ],
-        "js": ["contentScripts/reddit.js"]
-        }
+    "description": "Browse and Watch Twitch Livestreams/Videos with chat",
+    "incognito": "split",
+    "manifest_version": 2,
+    "name": "Simple Twitch UI",
+    "declarative_net_request" : {
+        "rule_resources" : [
+            {
+                "id": "ruleset_1",
+                "enabled": true,
+                "path": "rules.json"
+            }
+        ]
+    },
+    "permissions": [
+        "*://*/*",
+        "storage",
+        "unlimitedStorage",
+        "declarativeNetRequest"
     ],
-
-
-   "description": "Browse and Watch Twitch Videos",
-
-   "incognito": "split",
-   "manifest_version": 2,
-   "name": "Simple Twitch Videos",
-   "permissions": [ "*://*/*", "storage"],
-   "short_name": "TVids",
-   "browser_action": {},
-   "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "1"
+    "short_name": "ST",
+    "browser_action": {
+      "default_icon": {
+        "32": "resources/icons/favicon-v1.png"
+      }
+    },
+    "update_url": "https://clients2.google.com/service/update2/crx",
+    "version": "1"
 }

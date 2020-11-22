@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="icon" type="image/png" sizes="32x32" href="resources/icons/favicon-v1.png">
     <title>Video Player</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="player.css">
-    <script src="js/external/hls.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/player.css">
+    <script src="js/lib/hls.js"></script>
     <script type="module" src="js/player/entry.js"></script>
 </head>
 <body>
@@ -20,8 +21,23 @@
             <video></video>
         </div>
         <div class="player-ui">
-            <div class="player-overlay"></div>
+            <div class="player-overlay">
+                <div class="player-overlay__icon-container">
+                    <svg class="player-overlay__icon" width="120px" height="120px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px">
+                        <g>
+                            <path d="M5 17.066V2.934a.5.5 0 01.777-.416L17 10 5.777 17.482A.5.5 0 015 17.066z">
+                            </path>
+                        </g>
+                    </svg>
+                </div>
+            </div>
             <div class="player-interface">
+                <div class="player-interface__top">
+                    <div class="player-buttons-left"></div>
+                    <div class="player-buttons-right">
+                        <span class="user-settings-button"></span>
+                    </div>
+                </div>
                 <div class="player-interface__bottom">
                     <div class="player-buttons-left">
                         <div class="player-button--play-pause player-button">
@@ -79,19 +95,18 @@
         <div class="chat-buttons">
             <span class="drag-handle"></span>
             <span class="resize-handle"></span>
-            <span class="menu-button"></span>
-             <div class="chat-options">
-            
-            </div>
         </div>
        
         <div class="chat-container">
             <div class="chat-lines">
                 
             </div>
+            <div title="some messages were hidden" class="hidden-indicator"></div>
             <div class="chat-paused-indicator">Chat Paused</div>
         </div>
     </div>
+    <div class="user-settings-container user-settings-container--hidden"></div>
+
 </div>
 
 

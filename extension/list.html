@@ -1,84 +1,15 @@
 <head>
-    <title>Video List</title>
-    <script src="js/external/awesomplete.min.js"></script>
+    <link rel="icon" type="image/png" sizes="32x32" href="resources/icons/favicon-v1.png">
+    <title>Simple Twitch UI</title>
+    <script src="js/lib/awesomplete.min.js"></script>
 
-    <script type="module" src="js/list/entry.js"></script>
-    <link rel="stylesheet" type="text/css" href="awesomplete.css">
-    <link rel="stylesheet" type="text/css" href="list.css">
+    <script type="module" src="js/list/list.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/awesomplete.css">
+    <link rel="stylesheet" type="text/css" href="css/list.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
 </head>
 
 <body>
-    <main>
-        <section class="interface">
-            <div class="top-links">
-                <div class="top-links-left">
-                    <span class="top-link watch-later-button">Watch Later</span>
-                    <span class="top-link nonlisted-button"></span>
-                </div>
-                <div class="top-links-right">
-                    <a class="top-link home-button" href="list.html" target="_blank">
-                        New Tab
-                    </a>
-                    <span class="top-link client-id-button"></span>
-                    <span class="top-link import-follows-button"></span>
-
-                    <span class="top-link import-button">Import Settings</span>
-                    <span class="top-link export-button">Export Settings</span>
-                </div>
-            </div>
-            <form>
-                <div class="form-head">
-                    <div class="search-option">
-                        <label>Type</label>
-                        <div class="search-option__type">
-                            <div class="search-type-button" data-type="live">Live</div>
-                            <div class="search-type-button" data-type="games">Games</div>
-                            <div class="search-type-button" data-type="livefavs">Live Favs</div>
-                            <div class="search-type-button" data-type="archive">Vods</div>
-                            <div class="search-type-button" data-type="highlight">Highlights</div>
-                            <div class="search-type-button" data-type="clips">Clips</div>
-                        </div>
-                    </div>
-                    <div class="search-option search-option--vod">
-                        <label>Channel</label>
-                        <input class="search-option__channel" name="channel" type="text" placeholder="required">
-                    </div>
-                    <div class="search-option search-option--live">
-                        <label>Game</label>
-                        <input placeholder="optional" type="text" class="search-option__game">
-                        <input type="hidden" class="search-option__game_id">
-                    </div>
-                    <input class="search-submit" type="submit" value="Load">
-                </div>
-            </form>
-        </section>
-
-        <section class="pre-results">
-            <div class="link-list">
-
-            </div>
-
-
-        </section>
-        <section class="results">
-            <div class="channel-title">
-                <div class="channel-title__channel">
-                    <div class="channel-title__channel-name"></div>
-                    <div class="channel-title__channel-fav">
-                        <svg class="" width="28px" height="28px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><path d="M13.535 3C11.998 3 10.767 4.046 10 4.937 9.232 4.046 8.002 3 6.465 3 3.535 3 2 5.347 2 7.665c0 3.683 4.762 7.488 6.808 8.954a2.047 2.047 0 0 0 2.383 0c2.048-1.466 6.81-5.271 6.81-8.954C18 5.347 16.466 3 13.534 3" fill-rule="evenodd"></path></svg>
-                    </div>
-                </div>
-                <div class="channel-title__info"></div>
-            </div>
-            <div class="list">
-
-            </div>
-            <div class="pagination">
-                <div class="pagination-pages">
-                </div>
-            </div>
-        </section>
-    </main>
+    
 </body>

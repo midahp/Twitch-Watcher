@@ -1,15 +1,19 @@
 import {settings} from '../settings.js';
 import {utils} from '../utils/utils.js';
-import { Ui } from './ui/ui.js';
-import {makeElements} from './ui/elements.js';
+import { Controller } from './controller.js';
+import {makeElements} from './elements.js';
 
 
 function load(){
     makeElements();
     utils.ready.then(()=>{
-        let ui = new Ui();
+        const c = new Controller();
     });
 }
 
 
-window.onload = load;
+
+document.addEventListener('DOMContentLoaded', event => {
+    load();
+});
+

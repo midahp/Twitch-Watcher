@@ -1,6 +1,6 @@
 import {settings} from '../settings.js';
 import {utils, FixedSizeArray} from '../utils/utils.js';
-import {v5Api} from '../api/v5.js';
+import {v5Api} from '../api/twitch/v5.js';
 
 
 class ReChat{
@@ -12,7 +12,7 @@ class ReChat{
         this.chunkTimes = new Map();
         this.messages = new FixedSizeArray(350);
         this.clear = false;
-        this.failed = 0;
+        this.cooldown = 1;
     }
 
     halfChunkBuffer(){
@@ -44,6 +44,7 @@ class ReChat{
             }
             message = {
                 "fragments": comment["message"]["fragments"],
+                "body": comment["message"]["body"],
                 "from": comment["commenter"]["display_name"],
                 "time": comment["content_offset_seconds"],
                 "color": comment["message"]["user_color"],
@@ -100,6 +101,9 @@ class ReChat{
         else{
             return v5Api.comments(this.vid, ident).then((json) =>{
                 if(json && json.comments && json.comments[0]){
+                    if (this.cooldown > 1){
+                        this.cooldown = Math.ceil(this.cooldown / 2);
+                    }
                     this.processChunk(json, ident);
                     if(json._next !== ident){
                         this.next = json._next;
@@ -107,10 +111,10 @@ class ReChat{
                     }
                 }
                 else{
-                    this.failed++;
+                    this.cooldown = Math.ceil(this.cooldown * 1.5);
                     setTimeout(()=>{
                         this.gettingident = undefined;
-                    }, this.failed*1000);
+                    }, this.cooldown*1000);
                 }
             });
         }
@@ -172,7 +176,7 @@ class LiveParser{
 
     convert(data){
         let converted = {};
-        // converted["text"] = data.["text"];
+        converted["body"] = data["text"];
         converted["from"] = data["display-name"];
 
         let badges = [];
