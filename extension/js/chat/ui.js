@@ -363,19 +363,19 @@ class ReChatInterface extends ChatInterface{
         this.iterate();
     }
 
-    updateChatPosition(secs, before){
-        const chatTime = secs + this.syncTime;
-        const diff = secs - before;
+    updateChatPosition(currentTime, previousTime){
+        // const chatTime = secs + this.syncTime;
+        const diff = currentTime - previousTime;
         if(-33 < diff && diff < 0){
-            const success = this.revertUntilAlign(chatTime);
-            if(!success) this.chat.seek(chatTime);
+            const success = this.revertUntilAlign(currentTime);
+            if(!success) this.chat.seek(currentTime);
         }
         else if(0 < diff && diff < 33){
-            this.addNewMsgs(chatTime);
+            this.addNewMsgs(currentTime);
         }
         else if (diff == 0) return;
         else{
-            this.chat.seek(chatTime);
+            this.chat.seek(currentTime);
             this.clearMessages();
         }
         this.chat.getNext();
@@ -407,7 +407,7 @@ class ReChatInterface extends ChatInterface{
     }
 
     iterate = ()=>{
-        const newTime = this.timeGiver();
+        const newTime = this.timeGiver() + this.syncTime;
         this.updateChatPosition(newTime, this.previousTime);
         this.previousTime = newTime;
         // this.chat.getNext();
