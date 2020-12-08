@@ -132,9 +132,7 @@ class DataFormater{
             let resumePos = resumePositions[id] || 0;
             state.resumeBarWidth = (resumePos / secs) * 100;
             let views = video.view_count.toString();
-            if(views.length > 3){
-                views = views.substring(0, views.length-3) + "," + views.substring(views.length-3);
-            }
+            views = utils.readableNumber(views);
             state.views = views;
             state.thumb = formatHelper.getThumb(video);
 
@@ -162,13 +160,9 @@ class DataFormater{
             state.title = video.title;
             let date = video.created_at;
             state.when = utils.twTimeStrToReadable(date);
-            // let vid = video["video_id"];
-            // state.vid = vid;
             state.cid = video.url.split("/")[3];
             let views = video.view_count.toString();
-            if(views.length > 3){
-                views = views.substring(0, views.length-3) + "," + views.substring(views.length-3);
-            }
+            views = utils.readableNumber(views);
             state.views = views;
             state.thumb = formatHelper.getThumb(video);
 
@@ -219,9 +213,8 @@ class DataFormater{
             state.title = stream["title"];
             // state.title = utils.escape(stream["title"]);
             let viewers = stream["viewer_count"].toString();
-            if(viewers.length > 3){
-                viewers = viewers.substring(0, viewers.length-3) + "," + viewers.substring(viewers.length-3);
-            }
+            viewers = utils.readableNumber(viewers);
+
             state.viewers = viewers;
 
             let channel = stream["user_name"];
@@ -260,9 +253,7 @@ class DataFormater{
             state.title = stream.title;
             // if (state.type != "live") console.log(state.type);
             let viewers = stream.viewersCount.toString();
-            if(viewers.length > 3){
-                viewers = viewers.substring(0, viewers.length-3) + "," + viewers.substring(viewers.length-3);
-            }
+            viewers = utils.readableNumber(viewers);
             state.viewers = viewers;
 
             let channel = stream.broadcaster.login;

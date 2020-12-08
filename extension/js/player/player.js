@@ -362,10 +362,10 @@ class LivePlayer extends HlsPlayer{
         document.title = `${this.info.channel} - Live - Simple Twitch UI`;
     }
 
-    // seek(secs){
-    //     this.videoElem.currentTime = secs + this.stream.hls.streamController.mediaBuffer.buffered.start(0);
+    seek(secs){
+        this.videoElem.currentTime = secs + this.stream.hls.streamController.mediaBuffer.buffered.start(0);
 
-    // }
+    }
     get duration(){
         return this.videoElem.duration - this.stream.hls.streamController.mediaBuffer.buffered.start(0);
         // return this.videoElem.duration;
