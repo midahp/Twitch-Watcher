@@ -7,20 +7,10 @@
     "incognito": "split",
     "manifest_version": 2,
     "name": "Simple Twitch UI",
-    "declarative_net_request" : {
-        "rule_resources" : [
-            {
-                "id": "ruleset_1",
-                "enabled": true,
-                "path": "rules.json"
-            }
-        ]
-    },
     "permissions": [
         "*://*/*",
         "storage",
-        "unlimitedStorage",
-        "declarativeNetRequest"
+        "unlimitedStorage"
     ],
     "short_name": "ST",
     "browser_action": {

@@ -10,7 +10,7 @@ All media data is loaded from twitch.tv. Api calls are used to collect various d
 This extension uses the hls streaming library hls.js from https://github.com/video-dev/hls.js.
 
 After installing the extension, the directory page will open. 
-Clicking the extension icon or typing "twitch.simple" in the address bar will also open it.
+Clicking the extension icon will also open it. I suggest bookmarking this page.
 
 # Player Keybindings
 

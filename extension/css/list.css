@@ -50,13 +50,13 @@ a:visited{
     width: 100%;
     display: flex;
     flex-wrap: wrap;
-    cursor: pointer;
     justify-content: space-between;
     align-content: center;
     margin-bottom: 1em;
     margin-top: 5px;
 }
 .top-link{
+    cursor: pointer;
     margin: 0px 7px;
 }
 

@@ -89,7 +89,8 @@ class Interface extends Component {
             <section class="interface">
                 <div class="top-links">
                     <div class="top-links-left">
-                    
+                        <a class="top-link" href="#/live/0">Unlisted Streams</a>
+                        <a class="top-link" href="#/hidden-games">Hidden Games</a>
                     </div>
                     <div class="top-links-right">
                         <${ImportExport} />
@@ -103,7 +104,6 @@ class Interface extends Component {
                     <a class="pages-nav_page" href="#/live">Live</a>
                     <a class="pages-nav_page" href="#/games">Games</a>
                     <a class="pages-nav_page" href="#/favourites">Favourites</a>
-                    <a class="pages-nav_page" href="#/hidden-games">Hidden Games</a>
                     <a class="pages-nav_page" href="#/watch-later">Watch Later</a>
                 </nav>
 

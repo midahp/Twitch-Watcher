@@ -83,6 +83,7 @@ class LiveHelix extends CardsPage{
         let gamesHeader = "";
         const games = Object.values(this.games);
         if (games && games.length){
+            title = `${games.length == 1 ? games[0].name : games.length + " Games"} - ${title}`;
             gamesHeader = html`
             <div class="result-list-header result-list-header--h2">
                 ${games.map(g=>{

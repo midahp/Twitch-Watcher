@@ -174,6 +174,10 @@ class HelixApi extends AbstractApi{
         }
         let id_set = new Set(ids);
         let games = await utils.storage.getGames();
+        games["0"] = {
+            "name": "Unlisted",
+            "id": "0",
+        };
         let result = {};
         let game, id;
         if (games){
