@@ -26,7 +26,7 @@ class SearchResults extends Component{
     constructor(props){
         super(props);
         this.state = {
-            "users": [],
+            "channels": [],
             "games": [],
             "videos": [],
         };
@@ -34,7 +34,6 @@ class SearchResults extends Component{
 
     componentDidMount(){
         this.getData();
-
     }
 
     componentDidUpdate(prevProps) {
@@ -46,13 +45,33 @@ class SearchResults extends Component{
     async getData(){
         const query = this.props.query;
         if (!query) return;
-        const results = await gqlApi.searchResults(query);
-        const data = dataFormater.gqlSearchResults(results);
+        this.endpoint = gqlApi.searchResultsIter(query);
+        let {value, done} = await this.endpoint.next();
+        if(!value) return;
+        const data = dataFormater.gqlSearchResults(value);
         this.setState({
-            "users": data.users,
+            "channels": data.channels,
             "games": data.games,
             "videos": data.videos,
         });
+    }
+
+    async loadMore(type){
+        document.body.classList.add("loading");
+        let {value, done} = await this.endpoint.next(type);
+        if(!value || done){
+            document.body.classList.remove("loading");
+            return;
+        }
+        const data = dataFormater.gqlSearchResults(value);
+        this.setState((state, props)=>{
+            let s = {
+                ...state,
+            };
+            s[type] = s[type].concat(data[type]);
+            return s;
+        });
+        document.body.classList.remove("loading");
     }
 
     render(props, state){
@@ -67,18 +86,19 @@ class SearchResults extends Component{
                 </div>
 
                 ${  
-                    state.users.length ?
+                    state.channels.length ?
                     html`
                     <div class="result-list-header result-list-header--h2">
                         Channels
                     </div>
                     <div class="card-list card-list--users">
-                        ${state.users.map((e,i)=>{
+                        ${state.channels.map((e,i)=>{
                             return html`
                                 <${UserCard} key=${i} data=${e} filterQuery=${this.state.filterQuery} />
                             `;
                         })}
-                    </div>` : ''
+                    </div>
+                    <div class="load-more-button" onClick=${e=>this.loadMore("channels")}>Load More</div>` : ''
                 }
 
                 ${  
@@ -93,7 +113,8 @@ class SearchResults extends Component{
                                 <${GameCard} key=${i} data=${e} filterQuery=${this.state.filterQuery} />
                             `;
                         })}
-                    </div>` : ''
+                    </div>
+                    <div class="load-more-button" onClick=${e=>this.loadMore("games")}>Load More</div>` : ''
                 }
 
                 ${  
@@ -108,7 +129,8 @@ class SearchResults extends Component{
                                 <${VideoCard} key=${i} data=${e} filterQuery=${this.state.filterQuery} />
                             `;
                         })}
-                    </div>` : ''
+                    </div>
+                    <div class="load-more-button" onClick=${e=>this.loadMore("videos")}>Load More</div>` : ''
                 }
             </div>
         `;

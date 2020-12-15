@@ -31,7 +31,7 @@ class DataFormater{
 
     gqlSearchResults(data){
         return {
-            "users": this.gqlUsers(data.channels.items),
+            "channels": this.gqlUsers(data.channels.items),
             "games": this.gqlGames(data.games.items),
             "videos": this.gqlVideos(data.videos.items),
         };

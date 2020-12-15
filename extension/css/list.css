@@ -150,6 +150,7 @@ a:visited{
 }
 .channel-title__fav{
     cursor: pointer;
+    vertical-align: text-top;
 }
 .channel-title__fav svg{
     fill: white;
@@ -426,6 +427,17 @@ dialog input[type=file]{
     text-decoration: none;
     background: grey;
     border-radius: 5px;
+}
+
+.load-more-button {
+    margin-bottom: 1em;
+    padding: .5em 5em;
+    background: #2b2b2b;
+    border-radius: 5px;
+    border: 1px solid grey;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 .pages-nav{

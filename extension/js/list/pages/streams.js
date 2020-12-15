@@ -87,7 +87,10 @@ class LiveHelix extends CardsPage{
             gamesHeader = html`
             <div class="result-list-header result-list-header--h2">
                 ${games.map(g=>{
-                    return html`<span class="game-header-entry"><span class="game-header-name">${g.name}</span><span onclick=${e=>this.removeGame(g.id)} class="game-header-remove">⨯</span></span>`;
+                    return html`<span class="game-header-entry">
+                        <${FavouriteIcon} size="21" ident=${g.id} type="games" />
+                        <span class="game-header-name">${g.name}</span><span title="remove this game from the filter" onclick=${e=>this.removeGame(g.id)} class="game-header-remove">⨯</span>
+                    </span>`;
                 })}
             </div>
             `;
@@ -97,7 +100,7 @@ class LiveHelix extends CardsPage{
             <div class="result-list">
                 <div class="result-top-bar">
                     <div class="result-list-header result-list-header--h1">
-                        ${title}
+                        Live Channels
                     </div>
                     <div class="result-actions result-actions--left">
                         <div class="stream-lang-selector result-action">

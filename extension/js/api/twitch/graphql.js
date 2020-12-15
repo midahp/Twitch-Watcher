@@ -145,6 +145,69 @@ class GraphqlApi{
         }];
     }
 
+    async *searchResultsIter(query){
+        const target = {
+                'index': "",
+                'cursor': "",
+        }
+        const options = {
+            'targets': [target]
+        }
+        const body = [{
+            'operationName': 'SearchResultsPage_SearchResults',
+            'variables':{
+                'query': query,
+                'options': null,
+            },
+            'extensions':{'persistedQuery':{'version':1,'sha256Hash':'f53adcad1609913933a232e2782d9d667c2417806c081b653d61b1e601c4c8e2'}}
+        }];
+
+        const typeToIndex = {
+            "channels": "CHANNEL",
+            "videos": "VOD",
+            "games": "GAME",
+        }
+
+
+        let json = await this.fetch(body);
+        let results = json[0].data.searchFor;
+        const cursors = {
+            "channels": results.channels.cursor,
+            "videos": results.videos.cursor,
+            "games": results.games.cursor,
+        }
+
+        const total = {
+            "channels": results.channels.totalMatches,
+            "videos": results.videos.totalMatches,
+            "games": results.games.totalMatches,
+        }
+
+        body[0].variables.options = options;
+        let type;
+        while (true){
+            try{
+                type = yield results;
+                if (!type) continue;
+                target.index = typeToIndex[type];
+                target.cursor = cursors[type];
+                if(!target.cursor){
+                    results = false;
+                    continue;
+                }
+                json = await this.fetch(body);
+                results = json[0].data.searchFor;
+
+                cursors[type] = results[type].cursor;
+                total[type] = results[type].totalMatches;
+            }
+            catch(err){
+                console.log(err);
+                break;
+            }
+        }
+    }
+
     async searchResults(query){
         const body = [{
             'operationName': 'SearchResultsPage_SearchResults',
@@ -323,17 +386,16 @@ class GqlQueryEndpoint{
        this.endpoint = endpoint;
    }
 
-   async call(params){
+   async call(params, x){
        this.iter = gqlApi[this.endpoint](params);
-       let {value, done} = await this.iter.next();
-       // console.log("value, done:", value, done);
+       let {value, done} = await this.iter.next(x);
        this.done = done;
        return value;
    }
 
-   async next(){
+   async next(x){
        if (this.done) return;
-       let {value, done} = await this.iter.next();
+       let {value, done} = await this.iter.next(x);
        // console.log("value, done:", value, done);
        this.done = done;
        return value;
