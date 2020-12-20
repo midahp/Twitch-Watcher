@@ -471,6 +471,17 @@ class Utility{
         }, obj);
     }
 
+    buildUrl(url, params){
+        if(!params) return url;
+        const entries = Object.entries(params);
+        if(!entries.length) return url;
+
+        const q = entries.map(([key,val])=>{
+            return `${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
+        }).join("&");
+        return `${url}?${q}`;
+    }
+
 }
 const utils = new Utility();
 export {utils, FixedSizeArray};

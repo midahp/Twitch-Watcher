@@ -165,8 +165,9 @@ class Clip{
 
 
 class Live{
-    constructor(channel){
+    constructor(channel, channelID){
         this.channel = channel;
+        this.channelID = channelID;
         this.makeConfig();
     }
 

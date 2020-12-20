@@ -11,15 +11,20 @@ class UndocumentedApi extends AbstractApi{
             "mode": "cors",
             "includeClientId": true,
         };
+
+        this.vodPlayerType = "site";
+        this.livePlayerType = "embed";
     }
 
     videoAuth(vId){
-        let url = `https://api.twitch.tv/api/vods/${vId}/access_token.json?as3=t&adblock=false&need_https=true&platform=web&player_type=site`;
+        const q = `as3=t&adblock=false&need_https=true&platform=web&player_type=${this.vodPlayerType}`;
+        const url = `https://api.twitch.tv/api/vods/${vId}/access_token.json?${q}`;
         return this.call(url);
     }
 
     streamAuth(sId){
-        let url = `https://api.twitch.tv/api/channels/${sId}/access_token?as3=t&adblock=false&need_https=true&player_type=site`;
+        const q = `as3=t&adblock=false&need_https=true&player_type=${this.livePlayerType}`;
+        const url = `https://api.twitch.tv/api/channels/${sId}/access_token?${q}`;
         return this.call(url);
     }
 

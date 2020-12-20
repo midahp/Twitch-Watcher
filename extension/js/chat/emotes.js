@@ -106,11 +106,14 @@ class Emotes{
         let parts = msg.split(" ");
         let index, part, url, emote;
         for(index in parts){
-            part = parts[index];
+            part = utils.escape(parts[index]);
             url = this.getEmoteUrl(part);
             if(url){
                 emote = this.getEmoteStr(url, part);
                 parts[index] = emote;
+            }
+            else if (part.startsWith("https://")){
+                parts[index] = `<a target="_blank" href="${part}">${part}</a>`;
             }
         }
         let newMsg = parts.join(" ");

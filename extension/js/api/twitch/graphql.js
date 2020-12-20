@@ -27,7 +27,7 @@ class GraphqlApi{
         body = JSON.stringify(body);
         let response = await fetch(url, {
           "headers": headers,
-          "referrer": "https://www.twitch.tv/directory/all",
+          "referrer": "https://player.twitch.tv",
           "referrerPolicy": "no-referrer-when-downgrade",
           "body": body,
           "method": "POST",
@@ -91,6 +91,76 @@ class GraphqlApi{
         }
 
 
+    }
+
+    async accessToken(type, id){
+        const vars = {
+            "login": "",
+            "vodID": "",
+            "isLive": false,
+            "isVod": false,
+            "playerType": "site",
+        };
+        let login, vodID, isLive, isVod, playerType;
+        if(type == "live"){
+            vars.login = id;
+            vars.playerType = "embed";
+            vars.isLive = true;
+        }
+        else if(type == "vod"){
+            vars.vodID = id;
+            vars.isVod = true;
+        }
+        const body = [{
+            "operationName":"PlaybackAccessToken",
+            "variables": vars,
+            "extensions":
+            {
+                "persistedQuery":{
+                    "version":1,
+                    "sha256Hash":"0828119ded1c13477966434e15800ff57ddacf13ba1911c129dc2200705b0712"
+                }
+            }
+        }];
+
+        const json = await this.fetch(body);
+        const data = type=="live" ? json[0].data.streamPlaybackAccessToken : json[0].data.videoPlaybackAccessToken;
+        return {
+            "sig": data.signature,
+            "token": data.value,
+        }
+    }
+
+    async getVideoManifestUrl(vId){
+        const authP = await this.accessToken("vod", vId);
+        const url = utils.buildUrl(`https://usher.ttvnw.net/vod/${vId}.m3u8`, {
+            "p": parseInt(Math.random() * 999999),
+            "player_backend": "mediaplayer",
+            "cdm": "wv",
+            "player_version": "1.2.0",
+            // "play_session_id": "72217a1beb625beb3d69246e574a1403"
+            "fast_bread": true,
+            "allow_source": true,
+            "sig": authP.sig,
+            "token": authP.token,
+        });
+        return url;
+    }
+
+    async getStreamManifestUrl(sId){
+        const authP = await this.accessToken("live", sId);
+        const url = utils.buildUrl(`https://usher.ttvnw.net/api/channel/hls/${sId.toLowerCase()}.m3u8`, {
+            "p": parseInt(Math.random() * 999999),
+            "player_backend": "mediaplayer",
+            "cdm": "wv",
+            "player_version": "1.2.0",
+            // "play_session_id": "72217a1beb625beb3d69246e574a1403"
+            "fast_bread": true,
+            "allow_source": true,
+            "sig": authP.sig,
+            "token": authP.token,
+        });
+        return url;
     }
 
 

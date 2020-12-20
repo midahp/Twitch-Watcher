@@ -250,7 +250,7 @@ class LiveChat{
 
     connect(){
         const wsAddress = "wss://irc-ws.chat.twitch.tv/";
-        let c = new WebSocket(wsAddress);
+        let c = new ReconnectingWebSocket(wsAddress);
         c.onmessage = e=>{
             // console.log(e.data);
             if(e.data.startsWith("PING :tmi.twitch.tv")){

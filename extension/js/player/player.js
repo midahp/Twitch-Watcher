@@ -8,6 +8,7 @@ import * as components from './components/components.js';
 
 import {helixApi} from '../api/twitch/helix.js';
 import {undocApi} from '../api/twitch/undoc.js';
+import {gqlApi} from '../api/twitch/graphql.js';
 import { MODES } from './constants.js';
 
 
@@ -292,7 +293,7 @@ class VodPlayer extends HlsPlayer{
 
         await this.media.makeConfig();
 
-        const manifestUrl = await undocApi.getVideoManifestUrl(this.info.videoId);
+        const manifestUrl = await gqlApi.getVideoManifestUrl(this.info.videoId);
         this.stream = new Stream(manifestUrl, this.media.config);
 
 
@@ -333,13 +334,13 @@ class LivePlayer extends HlsPlayer{
 
 
     async loadMedia(){
-        this.media = new Live(this.info.channel);
+        this.media = new Live(this.info.channel, this.info.channelId);
         await this.media.loadData();
 
         let asciiChannel = this.media.channel;
         if(this.media.channelID){
-            let user = await helixApi.getUsers([channelID]);
-            user = user[channelID];
+            let user = await helixApi.getUsers([this.media.channelID]);
+            user = user[this.media.channelID];
             asciiChannel = user.login;
         }
         this.chat = new LiveChatInterface({
@@ -350,7 +351,8 @@ class LivePlayer extends HlsPlayer{
 
         await this.media.makeConfig();
 
-        const manifestUrl = await undocApi.getStreamManifestUrl(encodeURIComponent(asciiChannel));
+        // const manifestUrl = await undocApi.getStreamManifestUrl(encodeURIComponent(asciiChannel));
+        const manifestUrl = await gqlApi.getStreamManifestUrl(asciiChannel);
         this.stream = new Stream(manifestUrl, this.media.config);
 
     }
