@@ -71,7 +71,7 @@ function addLink(link){
     const newLink = document.createElement("a");
 
     newLink.href = "#";
-    newLink.textContent = `Open Clip in Simple Twitch UI`;
+    newLink.textContent = `Open Clip in Twitch Watcher`;
     link.parentElement.append(newLink);
     newLink.addEventListener("click", e=>{
         e.preventDefault();

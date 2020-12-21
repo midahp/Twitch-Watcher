@@ -89,9 +89,7 @@ class FavouriteIcon extends Component{
     constructor(props){
         super(props);
         this.state = {
-            "ident": this.props.ident,
             "faved": false,
-            "type": this.props.type,
         };
     }
 
@@ -99,22 +97,27 @@ class FavouriteIcon extends Component{
         this.setInitial();
     }
 
-    async setInitial(){
-        const type = this.state.type;
-        const ident = this.state.ident;        
-        if (!ident) return;
-        await favourites.ready;
-        if(favourites.isFaved(ident,type)){
-            this.setState({
-                "faved": true,
-            });
+    componentDidUpdate(prevProps){
+        if(this.props.ident !== prevProps.ident){
+            this.setInitial();
         }
     }
 
+    async setInitial(){
+        const type = this.props.type;
+        const ident = this.props.ident;        
+        if (!ident) return;
+        await favourites.ready;
+        const faved = favourites.isFaved(ident,type);
+        this.setState({
+            "faved": faved,
+        });
+    }
+
     handleFavClick = e=>{
-        const ident = this.state.ident;        
+        const ident = this.props.ident;        
         const faved = this.state.faved;
-        const type = this.state.type;
+        const type = this.props.type;
         if (!ident) return;
         if (faved){
             favourites.remove(ident,type);

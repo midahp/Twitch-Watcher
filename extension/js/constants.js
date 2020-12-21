@@ -1,5 +1,5 @@
 
-const APP_NAME = "Simple Twitch UI";
+const APP_NAME = "Twitch Watcher";
 
 
 const LANG_CODES = [

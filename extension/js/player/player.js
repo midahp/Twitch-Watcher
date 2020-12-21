@@ -1,5 +1,6 @@
 import {settings} from '../settings.js';
 import {utils} from '../utils/utils.js';
+import {APP_NAME} from '../constants.js';
 
 import {Video, Live, Clip, Stream} from '../media/media.js';
 import { ReChatInterface, LiveChatInterface } from '../chat/ui.js';
@@ -120,7 +121,7 @@ class Player{
     }
 
     setDocumentTitle(){
-        document.title = `Simple Twitch UI`;
+        document.title = `${APP_NAME}`;
     }
 
     seek(secs){
@@ -276,7 +277,7 @@ class VodPlayer extends HlsPlayer{
     }
 
     setDocumentTitle(){
-        document.title = `${this.media.channelDisplay} - ${utils.onlyAscii(this.media.videoTitle)} - Simple Twitch UI`;
+        document.title = `${this.media.channelDisplay} - ${utils.onlyAscii(this.media.videoTitle)} - ${APP_NAME}`;
     }
 
     async loadMedia(){
@@ -361,7 +362,7 @@ class LivePlayer extends HlsPlayer{
     // }
 
     setDocumentTitle(){
-        document.title = `${this.info.channel} - Live - Simple Twitch UI`;
+        document.title = `${this.info.channel} - Live - ${APP_NAME}`;
     }
 
     seek(secs){
@@ -399,7 +400,7 @@ class ClipPlayer extends Player{
     }
 
     setDocumentTitle(){
-        document.title = `${this.media.title} - Simple Twitch UI`;
+        document.title = `${this.media.title} - ${APP_NAME}`;
     }
 
     updateComponents(){
