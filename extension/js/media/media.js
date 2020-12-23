@@ -157,7 +157,7 @@ class Clip{
         }
         if(!config.quality){
             config.quality = q;  
-            config.qualityIdx = idx;
+            // config.qualityIdx = i;
         } 
         this.config = config;
     }

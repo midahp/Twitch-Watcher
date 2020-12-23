@@ -2,7 +2,7 @@ export const settings = {
     DEBUG: true,
     clientId: "kimne78kx3ncx6brgo4mv6wki5h1ko",
     "2ndParty": "5xdruy8ydcweacjb297s2xxihfvix0",
-    "access_token": "tbibfpsrpi2vzu8vsbybacyzdyf9p6",
+    "access_token": "uwligpfpzi8n3m3j7d7qd97ld5x801", // expires on Feb 15 2021 
     mode: "video",
     hlsConfig: {
         "maxBufferLength": 60,  // seconds
@@ -18,4 +18,3 @@ how hls.js buffer settings work:
 - buffer more if 'maxBufferSize' is not reached
 - but NEVER buffer more than 'maxMaxBufferLength'
 */
-// tbibfpsrpi2vzu8vsbybacyzdyf9p6

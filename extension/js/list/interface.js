@@ -4,6 +4,9 @@ import { h, Component, render, createRef, Fragment } from '../lib/preact.module.
 import htm from '../lib/htm.module.js';
 import { Link } from '../lib/preact-router.js';
 import {route} from '../lib/preact-router.js';
+
+
+import {gqlApi} from '/js/api/twitch/graphql.js';
 import {favourites} from './favs.js';
 
 
@@ -13,13 +16,79 @@ const html = htm.bind(h);
 class Searcher extends Component{
     constructor(props){
         super(props);
+        this.state = {
+            suggestions: [],
+            suggestionsOpen: false,
+            selectedIdx: -1,
+        }
         this.inputRef = createRef();
+        this.wrapperRef = createRef();
     }
-    handleKeyPress = e => {
-        const val = e.target.value.trim();
-        if(!val) return;
-        if(e.key === "Enter"){
-            route(`/search/${val}`);
+
+    closeSuggestion(){
+        this.setState({
+            suggestionsOpen: false,
+            selectedIdx: -1,
+        });
+    }
+
+    componentDidMount(){
+        document.addEventListener('mousedown', this.handleClickOutside);
+        document.addEventListener('keydown', this.handleSelectChange);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('mousedown', this.handleClickOutside);
+        document.removeEventListener('keydown', this.handleSelectChange);
+    }
+
+    handleSelectChange = e=>{
+        if(document.activeElement != this.inputRef.current) return;
+        if(e.key == "ArrowDown"){
+            e.preventDefault();
+
+            this.setState((state, props)=>{
+                let idx = state.selectedIdx + 1;
+                if(idx >= state.suggestions.length){
+                    idx = -1;
+                }
+                return {
+                    "selectedIdx": idx,
+                }
+            });
+        }
+        else if(e.key == "ArrowUp"){
+            e.preventDefault();
+
+            this.setState((state, props)=>{
+                let idx = state.selectedIdx - 1;
+                if(idx < -1){
+                    idx = state.suggestions.length-1;
+                }
+                return {
+                    "selectedIdx": idx,
+                }
+            });
+        }
+        else if(e.key == "Enter"){
+            e.preventDefault();
+            this.inputRef.current.blur();
+            let elem = this.wrapperRef.current.querySelector(".suggestion--selected");
+            if(elem){
+                elem.querySelector("a").click();
+            }
+            else{
+                const val = this.inputRef.current.value.trim();
+                if(!val) return;
+                if(e.key === "Enter"){
+                    route(`/search/${val}`);
+                }
+            }
+            this.closeSuggestion();
+        }
+        else if (e.key == "Escape"){
+            this.inputRef.current.blur();
+            this.closeSuggestion();
         }
     }
 
@@ -29,13 +98,94 @@ class Searcher extends Component{
         route(`/search/${val}`);
     }
 
+    handleInput = e=>{
+        const query = this.inputRef.current.value.trim();
+        if(query.length<3) return;
+        clearTimeout(this.suggestionTimeout);
+        this.suggestionTimeout = setTimeout(()=>{
+            gqlApi.searchSuggestions(query).then(results=>{
+                let result;
+                this.setState({
+                    suggestions: results,
+                    suggestionsOpen: Boolean(results.length)
+                });
+            });
+        }, 300);
+    }
+
+    choseSuggestion = e=>{
+        this.closeSuggestion();
+    }
+
+    gainedFocus = e=>{
+        e.target.select();
+        if(this.state.suggestions.length){
+            this.setState({
+                suggestionsOpen: true,
+                selectedIdx: -1,
+            });
+        }
+    }
+
+    handleClickOutside = e=>{
+        if (this.wrapperRef && !this.wrapperRef.current.contains(event.target)) {
+            this.setState({
+                suggestionsOpen: false
+            });
+        }
+    }
+
+    handleMouseEnter = e=>{
+        const idx = Array.from(
+            this.wrapperRef.current.querySelector(".searcher-suggestions").
+            children).indexOf(e.target);
+        this.setState({selectedIdx:idx});
+    }
+
     render(props, state){
         return html`
+            <div style="position:relative" ref=${this.wrapperRef}>
             <div class="searcher">
-                <input ref=${this.inputRef} class="searcher-input" onKeyPress=${this.handleKeyPress} onFocus=${e=>e.target.select()} type="text" />
+                <input ref=${this.inputRef} onInput=${this.handleInput} class="searcher-input" onFocus=${this.gainedFocus} type="text" />
                 <span onClick=${this.handleSearchClick} class="searcher-submit">
                     Search
                 </span>
+            </div>
+            <div class="searcher-suggestions${state.suggestionsOpen ? " searcher-suggestions--open":""}">
+                ${state.suggestions.map((s,i)=>{
+                    let h = ``;
+                    if(s.type == "searchTerm"){
+                        h = html`
+                            <a onClick="${this.choseSuggestion}" class="suggestion-link" href="#/search/${encodeURIComponent(s.text)}">
+                                <img class="suggestion-thumb" src="/resources/icons/search.png" />
+                                <div class="suggestion-text">${s.text}</div>
+                            </a>
+                        `;
+                    }
+                    else if(s.type == "SearchSuggestionChannel"){
+                        h = html`
+                            <a onClick="${this.choseSuggestion}" class="suggestion-link" target="_blank" href="/player.html?channel=${encodeURIComponent(s.login)}&channelD=${s.id}">
+                                <img class="suggestion-thumb" src="${s.thumb}" />
+                                <div class="suggestion-text">${s.text}</div>
+                            </a>
+                        `;
+                    }
+                    else if(s.type == "SearchSuggestionCategory"){
+                        h = html`
+                            <a onClick="${this.choseSuggestion}" class="suggestion-link" href="#/live/${s.id}">
+                                <img class="suggestion-thumb" src="${s.thumb}" />
+                                <div class="suggestion-text">${s.text}</div>
+                            </a>
+                        `;
+
+                    }
+                    return html`
+                        <div onMouseEnter=${this.handleMouseEnter} class="suggestion ${state.selectedIdx == i ? " suggestion--selected": ""}">
+                            ${h}
+                        </div>
+                    `;
+                })}
+            </div>
             </div>
         `;
     }

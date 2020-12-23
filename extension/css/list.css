@@ -38,7 +38,8 @@ a:visited{
 }
 .interface{
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     margin: 0;
     padding: 0;
@@ -406,7 +407,6 @@ dialog input[type=file]{
 }
 
 .searcher{
-    width: 100%;
     display: flex;
     justify-content: center;
     margin-bottom: 1em;
@@ -427,6 +427,40 @@ dialog input[type=file]{
     text-decoration: none;
     background: grey;
     border-radius: 5px;
+}
+
+.searcher-suggestions{
+    display:none;
+    position: absolute;
+    top: 50px;
+    border-radius: 10px;
+    z-index: 100;
+    background: #464646;
+    border: 1px solid grey;
+    width: 315px;
+    overflow:hidden;
+}
+.searcher-suggestions--open{
+    display: block;
+}
+.suggestion{
+    border-bottom: 1px solid grey;
+    padding: .5em;
+}
+.suggestion--selected{
+    background: #212121;
+}
+.suggestion-link{
+    display: flex;
+    align-items: center;
+}
+.suggestion-text{
+
+}
+.suggestion-thumb{
+    width: 40px;
+    height: auto;
+    margin-right: 10px;
 }
 
 .load-more-button {

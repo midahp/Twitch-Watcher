@@ -177,6 +177,7 @@ class Slider extends Component{
     }
     updateBufferDisplay(segmentEndTime){
         let p = this.percentageFromSecs(segmentEndTime);
+        if(p>1) p = 1;
         elements.sliderBuffer.style.width = p*100 + "%";
     }
 }

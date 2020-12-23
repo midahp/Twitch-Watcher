@@ -311,7 +311,7 @@ class VodPlayer extends HlsPlayer{
         const videoRecordingAppendInterval = setInterval(()=>{
             this.stream.hls.levelController.loadLevel();
         }, 5*60*1000);
-        let stillRecordingCount = 3;
+        let stillRecordingCount = 4;
         let durationThen = this.duration;
         let onLL = (e, data)=>{
             let durationNow = this.duration;
@@ -322,7 +322,7 @@ class VodPlayer extends HlsPlayer{
                 }
             }
             else if (durationNow){
-                stillRecordingCount = 3;
+                stillRecordingCount = 4;
                 durationThen = durationNow;
             }
         };

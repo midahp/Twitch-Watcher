@@ -4,6 +4,8 @@
 This is a simple Chrome/Firefox Extension that is an alternative UI and player for content from twitch.tv.
 This is supposed to only implement the minimum required to watch livestreams/videos, without all the other things twitch.tv has to offer.
 
+You can download the latest crx extension file under releases or [here](https://github.com/midahp/Twitch-Watcher/releases/latest/download/extension.crx).
+
 # General
 All media data is loaded from twitch.tv. Api calls are used to collect various datasets from twitch.tv.
 
@@ -44,5 +46,3 @@ There is no build process for this project. This was an intentional decision to 
 You can load the "extension" folder directly in chrome ('load unpacked') which is best for development.
 Under windows this will always show a warning message when chrome is started.
 Consult google for packing an extension (it's easy).
-
-I might put the packed extension files in the 'releasese' section.

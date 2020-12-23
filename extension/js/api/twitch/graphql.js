@@ -213,6 +213,34 @@ class GraphqlApi{
             },
             'extensions':{'persistedQuery':{'version':1,'sha256Hash':'2a747ed872b1c3f56ed500d097096f0cf8d365d2d5131cbdc170ae502f9b406a'}}
         }];
+
+        const json = await this.fetch(body);
+        const results = json[0].data.searchSuggestions.edges.map(edge=>{
+            const node = edge.node;
+            const content = node.content;
+            if(!content){
+                return {
+                    "type": "searchTerm",
+                    "text": node.text,
+                }
+            }
+
+            const type = content.__typename;
+            const entry = {
+                "id": content.id,
+                "type": type,
+                "text": node.text,
+            };
+            if(type == "SearchSuggestionChannel"){
+                entry.login = content.login;
+                entry.thumb = content.profileImageURL
+            }
+            else if(type == "SearchSuggestionCategory"){
+                entry.thumb = content.boxArtURL;
+            }
+            return entry;
+        });
+        return results;
     }
 
     async *searchResultsIter(query){
