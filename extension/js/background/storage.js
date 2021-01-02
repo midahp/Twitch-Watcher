@@ -145,6 +145,21 @@ const storageMessageHandler = (request, sender, sendResponse) => {
             }
             sendResponse(obj);
             break;
+        case "setNested":
+            const arr = request.dottedPath.split(".");
+            obj = storage.data;
+            let i;
+            let l = arr.length;
+            for(i in arr){
+                key = arr[i];
+                if(i == l-1){
+                    obj[key] = request.value;
+                    break;
+                }
+                obj = obj[key];
+            }
+            break;
+
         case "getResumePoint":
             sendResponse(storage.data["resumePositions"][request.vid]);
             break;
@@ -169,7 +184,7 @@ const storageMessageHandler = (request, sender, sendResponse) => {
             break;
         case "setUser":
             storage.data["users"][request.id] = request.user;
-            storage.needsSaving.add("users");
+            // storage.needsSaving.add("users");
             break;
         case "getApiCache":
             sendResponse(apiCache.getItem(request.id));
@@ -197,7 +212,10 @@ const storageMessageHandler = (request, sender, sendResponse) => {
             break;
         case "setAllData":
             storage.data = request.data;
-            storage.saveStorage(storage.data);
+            storage.saveStorage({
+                ...storage.data,
+                "users": {},
+            });
             storage.needsSaving.clear();
             break;
         case "getAllData":

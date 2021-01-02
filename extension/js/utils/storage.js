@@ -72,21 +72,21 @@ class Storage{
         return this.sendToBg(msg, false);
     }
 
-    getNested(pathArr){
+    getNested(dottedPath){
         let msg = {
             "op": "getNested",
-            "pathArr": pathArr,
+            "dottedPath": dottedPath,
         }
         return this.sendToBg(msg, true);
     }
 
-    setNested(pathArr, value){
+    setNested(dottedPath, value){
         let msg = {
             "op": "setNested",
-            "pathArr": pathArr,
+            "dottedPath": dottedPath,
             "value": value,
         }
-        return this.sendToBg(msg, false);
+        this.sendToBg(msg, false);
     }
 
     setFav(ident, type){

@@ -555,7 +555,7 @@ button:focus{
 
 .chat-emote{
     max-height: 1.7em;
-    vertical-align: bottom;
+    vertical-align: middle;
 }
 
 .preview-and-time{

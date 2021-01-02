@@ -84,7 +84,7 @@ class Searcher extends Component{
                     route(`/search/${val}`);
                 }
             }
-            this.closeSuggestion();
+            this.choseSuggestion(this.state.selectedIdx);
         }
         else if (e.key == "Escape"){
             this.inputRef.current.blur();
@@ -113,7 +113,8 @@ class Searcher extends Component{
         }, 300);
     }
 
-    choseSuggestion = e=>{
+    choseSuggestion(i){
+        this.inputRef.current.value = this.state.suggestions[i].text;
         this.closeSuggestion();
     }
 
@@ -156,7 +157,7 @@ class Searcher extends Component{
                     let h = ``;
                     if(s.type == "searchTerm"){
                         h = html`
-                            <a onClick="${this.choseSuggestion}" class="suggestion-link" href="#/search/${encodeURIComponent(s.text)}">
+                            <a onClick="${e=>this.choseSuggestion(i)}" class="suggestion-link" href="#/search/${encodeURIComponent(s.text)}">
                                 <img class="suggestion-thumb" src="/resources/icons/search.png" />
                                 <div class="suggestion-text">${s.text}</div>
                             </a>
@@ -164,7 +165,7 @@ class Searcher extends Component{
                     }
                     else if(s.type == "SearchSuggestionChannel"){
                         h = html`
-                            <a onClick="${this.choseSuggestion}" class="suggestion-link" target="_blank" href="/player.html?channel=${encodeURIComponent(s.login)}&channelD=${s.id}">
+                            <a onClick="${e=>this.choseSuggestion(i)}" class="suggestion-link" target="_blank" href="/player.html?channel=${encodeURIComponent(s.login)}&channelD=${s.id}">
                                 <img class="suggestion-thumb" src="${s.thumb}" />
                                 <div class="suggestion-text">${s.text}</div>
                             </a>
@@ -172,7 +173,7 @@ class Searcher extends Component{
                     }
                     else if(s.type == "SearchSuggestionCategory"){
                         h = html`
-                            <a onClick="${this.choseSuggestion}" class="suggestion-link" href="#/live/${s.id}">
+                            <a onClick="${e=>this.choseSuggestion(i)}" class="suggestion-link" href="#/live/${s.id}">
                                 <img class="suggestion-thumb" src="${s.thumb}" />
                                 <div class="suggestion-text">${s.text}</div>
                             </a>

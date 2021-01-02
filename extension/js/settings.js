@@ -9,6 +9,8 @@ export const settings = {
         "maxMaxBufferLength": 600, // seconds
         "maxBufferSize": 1e+6 * 70, // bytes
         "liveSyncDuration": 2, // seconds
+        "lowLatencyMode": false,
+        "progressive": false,
     },
 };
 
