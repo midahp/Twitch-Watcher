@@ -33,7 +33,9 @@ class Controller{
             info.channelId = channelID;
             elements.app.classList.add("live");
         }
-
+        if(chatonly){
+            info.chatonly = true;                
+        }
         if(settings.DEBUG){
             window.appInterface = this;
         }
@@ -41,9 +43,13 @@ class Controller{
     }
 
     async start(info){
-        this.player = getPlayer(elements.video, elements.chat, info.mode);
+        if(info.chatonly){
+            this.player = new DummyPlayer(elements.chat);
+        }
+        else{
+            this.player = getPlayer(elements.video, elements.chat, info.mode);
+        }
         await this.player.load(info);
-        await this.player.start();
         const keyBindings = new KeyBindings(this.player);
         keyBindings.handlers();
         this.handlers();

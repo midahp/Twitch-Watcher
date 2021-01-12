@@ -123,9 +123,9 @@ button:focus{
 .player-time-display .player-current-time{
     float: left;
 }
-.app.live .player-time-display .player-current-time{
+/*.app.live .player-time-display .player-current-time{
     display: none;
-}
+}*/
 .player-time-display .player-total-time{
     float: right;
 }
@@ -343,6 +343,22 @@ button:focus{
 .chat-lines .message .from{
     font-weight: bold;
 }
+.repeating-phrase{
+    background:grey;
+    border-radius: 3px;
+    padding: 0 5px;
+}
+.repeating-amount{
+    font-size: 80%;
+    color:red;
+}
+
+.msg-more-tooltip{
+    background: rgb(103 103 103 / 0.5);
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 3px;
+}
 
 .chat .drag-handle {
     z-index: 10000;
@@ -555,7 +571,7 @@ button:focus{
 
 .chat-emote{
     max-height: 1.7em;
-    vertical-align: middle;
+    vertical-align: bottom;
 }
 
 .preview-and-time{

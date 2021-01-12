@@ -42,8 +42,23 @@ class ReChat{
             if(comment.source !== "chat"){
                 continue;
             }
+            const fragments = [];
+            let fragment, word;
+            for (fragment of comment["message"]["fragments"]){
+                if(fragment.emoticon){
+                    fragments.push(fragment);
+                    continue;
+                }
+                for (word of fragment.text.split(" ")){
+                    if(word){
+                        fragments.push({
+                            "text": word,
+                        });
+                    }
+                }
+            }
             message = {
-                "fragments": comment["message"]["fragments"],
+                "fragments": fragments,
                 "body": comment["message"]["body"],
                 "from": comment["commenter"]["display_name"],
                 "time": comment["content_offset_seconds"],
@@ -218,19 +233,27 @@ class LiveParser{
     buildFragments(msg, emotes){
         let fragments = [];
         let previousPosition = 0;
-        let emote, between, emoteName, id, position;
+        let emote, between, emoteName, id, position, word;
         for(emote of emotes){
             id = emote.id;
             between = msg.substring(previousPosition, emote.begin);
             emoteName = msg.substring(emote.begin, emote.end+1);
             if(between.length){
-                fragments.push({"text": between});
+                for(word of between.split(" ")){
+                    if(word){
+                        fragments.push({"text": word});
+                    }
+                }
             }
             fragments.push({"text": emoteName, "emoticon": {"emoticon_id": id}});
             previousPosition = emote.end+1;
         }
         if(previousPosition<msg.length){
-            fragments.push({"text": msg.substring(previousPosition, msg.length)});
+            for(word of msg.substring(previousPosition, msg.length).split(" ")){
+                if(word){
+                    fragments.push({"text": word});
+                }
+            }
         }
         return fragments;
     }

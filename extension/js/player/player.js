@@ -14,20 +14,114 @@ import { MODES } from './constants.js';
 
 
 class DummyPlayer{
-    constructor(){
+    constructor(chatElem){
+        this.chatElem = chatElem;
         this.cachedTime = 0;
         this.paused = true;
     }
 
-    async start(vId){
-        this.video = new Video(vId);
-        await this.video.loaded;
-        const secs = utils.storage.getResumePoint(vId);
-        this.seek(secs);
+    async load(info){
+        this.info = info;
+        this.mode = info.mode;
+        this.loadComponents();
+        this.handlersBeforeLoad();
+        await this.loadMedia();
+        await this.start();
+        this.handlersAfterLoad();
+    }
+
+    loadComponents(){
+        this.components = {
+            "playerButtons": new components.PlayerButtons(this, this.MODE),
+            "playerControls": new components.PlayerControls(this, this.MODE)
+        }
+        if(this.mode == MODES.VOD){
+            this.components.slider = new components.Slider(this, this.MODE);
+        }
+    }
+
+    setTotalTime(timeStr){
+        elements.totalTime.textContent = timeStr;
+    }
+
+    setCurrentTotalTime(){
+        this.setTotalTime(utils.secsToHMS(this.duration));
+    }
+
+    async loadMedia(){
+        if(this.mode == MODES.VOD){
+            this.media = new Video(this.info.videoId);
+            await this.media.loadData();
+            this.setCurrentTotalTime();
+            this.chat = new ReChatInterface({
+                "videoId": this.info.videoId,
+                "channel": this.media.channel,
+                "channelId": this.media.channelId,
+                "chatElem": this.chatElem,
+                "timeGiver": ()=>this.currentTime,
+            });
+            this.components.slider.prepareHoverThumbs(this.media.hoverThumbs);
+        }
+        else{
+            this.media = new Live(this.info.channel, this.info.channelId);
+            await this.media.loadData();
+
+            let asciiChannel = this.media.channel;
+            if(this.media.channelID){
+                let user = await helixApi.getUsers([this.media.channelID]);
+                user = user[this.media.channelID];
+                asciiChannel = user.login;
+            }
+            this.chat = new LiveChatInterface({
+                "channel": this.info.channel.toLowerCase(),
+                "channelId": this.info.channelId,
+                "chatElem": this.chatElem,
+            });
+        }
+    }
+
+    updateCurrentTime(secs){
+        if(this.mode == MODES.LIVE) return;
+        elements.currentTime.textContent = utils.secsToHMS(secs);
+        this.components.slider.updateFromSecs(secs);
+    }
+
+    addVideoListeners(){
+
+    }
+
+    updateAll(secs){
+        this.updateCurrentTime(secs);
+    }
+
+    handlersAfterLoad(){
+
+    }
+    handlersBeforeLoad(){
+        let component;
+        for(component in this.components){
+            utils.log("loading: ", component);
+            this.components[component].handlers();
+        }
+        this.updateAllInterval = setInterval(()=>{
+            this.updateAll(this.currentTime);   
+        }, 500);
+    }
+
+
+    async start(){
+        this.chat.start(this.media.startPosition);
         this.play();
+        this.components.playerButtons.showPlay();
+    }
+
+    togglePlay(){
+        if(this.paused) this.play();
+        else this.pause();
     }
 
     play(){
+        this.components.playerButtons.showPlay();
         this.dateResumed = new Date();
         this.paused = false;
         this.onplay && this.onplay();
@@ -38,12 +132,13 @@ class DummyPlayer{
     }
 
     pause(){
-        this.cachedTime = this.getCurrentTime();
+        this.components.playerButtons.showPause();
+        this.cachedTime = this.currentTime;
         this.paused = true;
         this.onpause && this.onpause();
     }
 
-    getCurrentTime(){
+    get currentTime(){
         if(this.paused){
             return this.cachedTime;
         }
@@ -52,19 +147,30 @@ class DummyPlayer{
         }
     }
 
-    getDuration(){
-        return this.video.lengthInSecs;
+
+
+    get duration(){
+        if(this.mode == MODES.VOD){
+            return this.media.lengthInSecs;
+        }
+        else{
+            return 0;
+        }
+    }
+
+    setDocumentTitle(){
+        document.title = `${APP_NAME}`;
     }
 
     seek(secs){
-        let dur = this.getDuration();
+        let dur = this.duration;
         if(secs > dur){
             secs = dur;
         }
         else if(secs < 0){
             secs = 0;
         }
-        this.timeBeforeSeek = this.getCurrentTime();
+        this.timeBeforeSeek = this.currentTime;
         this.cachedTime = secs;
         if(!this.paused){
             this.dateResumed  = new Date();
@@ -196,6 +302,7 @@ class Player{
         this.loadComponents();
         this.handlersBeforeLoad();
         await this.loadMedia();
+        await this.start();
         this.handlersAfterLoad();
     }
 
@@ -220,7 +327,7 @@ class Player{
 class HlsPlayer extends Player{
 
     async start(){
-        this.chat.start(this.media.startPosition);
+        this.chat.start(this.media.config.startPosition);
         this.stream.loadHls(this.videoElem, ()=>{
             this.volume = this.media.config.volume;
             this.updateComponents();
@@ -352,7 +459,6 @@ class LivePlayer extends HlsPlayer{
 
         await this.media.makeConfig();
 
-        // const manifestUrl = await undocApi.getStreamManifestUrl(encodeURIComponent(asciiChannel));
         const manifestUrl = await gqlApi.getStreamManifestUrl(asciiChannel);
         this.stream = new Stream(manifestUrl, this.media.config);
 
@@ -367,6 +473,7 @@ class LivePlayer extends HlsPlayer{
 
     seek(secs){
         this.videoElem.currentTime = secs + this.stream.hls.streamController.mediaBuffer.buffered.start(0);
+        // this.videoElem.currentTime = secs;
 
     }
     get duration(){
@@ -384,6 +491,7 @@ class LivePlayer extends HlsPlayer{
     }
     updateCurrentTime(secs){
         this.components.slider.updateFromSecs(secs);
+        elements.currentTime.textContent = "-" + utils.secsToHMS(this.duration - secs);
     }
 
 }

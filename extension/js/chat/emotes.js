@@ -69,55 +69,24 @@ class Emotes{
         return `<img class="chat-emote" title="${emoteName}" src="${src}" />`;
     }
 
-    replaceWithEmotes(fragments){
-        let parts = [];
-        let fragment, text, emoticon, url;
-        for(fragment of fragments){
-            text = fragment.text;
-            emoticon = fragment.emoticon;
-            if(emoticon){
-                url = this.getSrcUrl(emoticon.emoticon_id);
-                parts.push(this.getEmoteStr(url, fragment.text));
-            }
-            else{
-                parts.push(this.replaceNonNativeEmotes(utils.escape(text)));
-            }
+    getEmoteFromFragment(fragment){
+        let text, emoticon, url;
+        text = fragment.text;
+        emoticon = fragment.emoticon;
+        if(emoticon){
+            url = this.getSrcUrl(emoticon.emoticon_id);
+            return this.getEmoteStr(url, fragment.text);
         }
-        return parts.join(" ");
+        else{
+            return this.getNonNativeEmote(utils.escape(text));
+        }
     }
 
-    removeEmotes(fragments){
-        let parts = [];
-        let fragment;
-        for(fragment of fragments){
-            if(fragment.emoticon){
-                continue;
-            }
-            let fragmentWords = fragment.text.split(" ");
-            let fragmentWord;
-            for(fragmentWord of fragmentWords){
-                if (!this.getEmoteUrl(part)) parts.push(fragmentWord);
-            }
+    getNonNativeEmote(word){
+        let url = this.getEmoteUrl(word);
+        if(url){
+            return this.getEmoteStr(url, word);
         }
-        return parts.join(" ");
-    }
-
-    replaceNonNativeEmotes(msg){
-        let parts = msg.split(" ");
-        let index, part, url, emote;
-        for(index in parts){
-            part = utils.escape(parts[index]);
-            url = this.getEmoteUrl(part);
-            if(url){
-                emote = this.getEmoteStr(url, part);
-                parts[index] = emote;
-            }
-            else if (part.startsWith("https://")){
-                parts[index] = `<a target="_blank" href="${part}">${part}</a>`;
-            }
-        }
-        let newMsg = parts.join(" ");
-        return newMsg;
     }
 
     convertBttvEmotes(emotes){

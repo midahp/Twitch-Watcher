@@ -7,29 +7,33 @@ import {undocApi} from '../api/twitch/undoc.js';
 
 class Stream{
     constructor(manifestUrl, config){
-        this.config = config;
         this.manifestUrl = manifestUrl;
         const hlsConfig = {};
-        Object.assign(hlsConfig, settings.hlsConfig, config)
-        this.hls = new Hls(hlsConfig);
+        Object.assign(hlsConfig, settings.hlsConfig, config);
+        this.config = hlsConfig;
     }
 
     loadHls(videoElem, cb){
-        let hls = this.hls;
+        const hls = (this.hls = new Hls(this.config));
+
         hls.attachMedia(videoElem);
         hls.on(Hls.Events.MEDIA_ATTACHED,() => {
-          utils.log("video and hls.js are now bound together !");
-          hls.loadSource(this.manifestUrl);
-          hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-            utils.log("manifest loaded, found " + data.levels.length + " quality level");
-            this.getClosestLevel(data.levels).then(nextLevel=>{
-                hls.nextLevel = nextLevel;
-                cb && cb();
-            });
-            window.addEventListener("settings.video.playbackSpeed", e=>{
-                videoElem.playbackRate = e.detail.value;
-            });
-          });
+            utils.log("video and hls.js are now bound together !");
+            hls.loadSource(this.manifestUrl);
+            const manifestParsedHandler = (event, data) => {
+                utils.log("manifest loaded, found " + data.levels.length + " quality level");
+                this.getClosestLevel(data.levels).then(startLevel=>{
+                    hls.startLevel = startLevel;
+                    hls.nextLevel = startLevel;
+                    cb && cb();
+                    hls.startLoad(this.config.startPosition);
+                });
+                window.addEventListener("settings.video.playbackSpeed", e=>{
+                    videoElem.playbackRate = e.detail.value;
+                });
+                // hls.off(Hls.Events.MANIFEST_PARSED, manifestParsedHandler);
+            };
+            hls.on(Hls.Events.MANIFEST_PARSED, manifestParsedHandler);
         });
     }
 
@@ -45,24 +49,23 @@ class Stream{
         });
     }
 
-    getClosestLevel(levels){
-        return utils.storage.getItem("lastSetBitrate").then(last=>{
-            if(last === "Auto"){
-                return -1;
+    async getClosestLevel(levels){
+        const last = await utils.storage.getItem("lastSetBitrate");
+        if(last === "Auto"){
+            return -1;
+        }
+        let index = 0;
+        let level, bitrate;
+        for(level of levels){
+            bitrate = level.bitrate;
+            if(bitrate>last){
+                return index-1;
             }
-            let index = 0;
-            let level, bitrate;
-            for(level of levels){
-                bitrate = level.bitrate;
-                if(bitrate>last){
-                    return index-1;
-                }
-                else{
-                    index++;
-                }
+            else{
+                index++;
             }
-            return index-1;
-        });
+        }
+        return index-1;
     }
 }
 
@@ -107,12 +110,14 @@ class Video{
     }
 
     async makeConfig(){
-        const resumePoint = await utils.storage.getResumePoint(this.vid);
+        let startPosition = parseInt(utils.findGetParameter("time"));
+        if(!startPosition){
+            startPosition = await utils.storage.getResumePoint(this.vid);
+        }
+        startPosition = startPosition || 0;
         const volume = await utils.storage.getItem("lastSetVolume");
 
         const config = {};
-        let GETTime = parseInt(utils.findGetParameter("time"));
-        let startPosition = GETTime || resumePoint || 0;
         
         config.startPosition = startPosition;
         config.volume = volume || 0.5;

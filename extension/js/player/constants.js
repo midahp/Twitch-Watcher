@@ -6,7 +6,8 @@ const MODES = {
     LIVE: 2,
     CLIP: 3,
     FILE: 4,
-    CHATONLY: 5,
+    // VOD_CHATONLY: 5,
+    // LIVE_CHATONLY: 6,
 }
 
 export {MODES};

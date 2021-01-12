@@ -264,6 +264,50 @@ class ChatFilters extends ChatSettinsgEntry{
     }
 }
 
+class CompressRepeatingPhrases extends ChatSettinsgEntry{
+    name = "compressRepeatingPhrases"
+    label = "Group Repeating Phrases"
+
+    default = false
+
+    clean(e){
+        return e.target.checked;
+    }
+
+    render(props, state){
+        return html`
+            <div class="user-settings-entry">
+                <label class="label" for="settings_compressRepeatingPhrases">
+                    <span>${this.label}</span>
+                    <input type="checkbox" id="settings_compressRepeatingPhrases" checked=${state.value} onInput=${this.handleInput} onChange=${this.handleChange} />
+                </label>
+            </div>    
+        `;
+    }
+}
+
+class TrimLongMessages extends ChatSettinsgEntry{
+    name = "trimLongMessages"
+    label = "Trim Long Messages"
+
+    default = false
+
+    clean(e){
+        return e.target.checked;
+    }
+
+    render(props, state){
+        return html`
+            <div class="user-settings-entry">
+                <label class="label" for="settings_trimLongMessages">
+                    ${this.label}
+                    <input type="checkbox" id="settings_trimLongMessages" checked=${state.value} onInput=${this.handleInput} onChange=${this.handleChange} />
+                </label>
+            </div>    
+        `;
+    }
+}
+
 
 class VideoSettinsgEntry extends SettingsEntry{
     category = "video"
@@ -390,6 +434,8 @@ class UserSettings extends Component{
                     <${BgVisibilitySetting} />
                     <${SyncTimeSetting} />
                     <${ChatFilters} />
+                    <${TrimLongMessages} />
+                    <${CompressRepeatingPhrases} />
                 </div>
                 <div class="user-settings-category">
                     <div class="category-label">Video</div>

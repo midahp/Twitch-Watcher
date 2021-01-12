@@ -8,6 +8,117 @@ import {gqlApi} from '../api/twitch/graphql.js';
 
 
 
+class MessageCompressor{
+    constructor(){
+        this.minCompressLength = 20;
+    }
+
+    shouldDoCompression(multiplier, arr){
+        return multiplier > 1 && multiplier * arr.reduce((acc, f) => {
+            if(f.emoticon){
+                return acc+2; // assume emotes have a width of 2 characters
+            }
+            return acc+f.text.length;
+        }, 0) >= this.minCompressLength;
+    }
+
+    doCompression(multiplier, arr, target){
+        target.push({
+            "text": "",
+            "type": "repeatingSegmentStart",
+            "amount": multiplier,
+        });
+        target.push(...arr);
+        target.push({
+            "text": "",
+            "type": "repeatingSegmentEnd",
+            "amount": multiplier,
+        });
+    }
+
+    fragmentArrayStartsWith(arr, includedArr){
+        let idx = 0;
+        for(idx in includedArr){
+            if(arr[idx].text !== includedArr[idx].text){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    getRepeatingFragments(headIdx, msgFragments){
+        const repeatingFragments = [msgFragments[headIdx]];
+        let repL = repeatingFragments.length;
+        const msgL = msgFragments.length - headIdx;
+
+        let multiplier = 1;
+        let fragmentIdx = headIdx+1;
+        let fragment;
+
+        while(repL * (multiplier + 1) <= msgL){
+            if (this.fragmentArrayStartsWith(
+                msgFragments.slice(fragmentIdx, fragmentIdx+repL), repeatingFragments)
+            ){
+                multiplier++;
+                fragmentIdx += repL;
+            }
+            else{
+                if(multiplier > 1){
+                    break;
+                }
+                else{
+                    repeatingFragments.push(msgFragments[fragmentIdx++]);
+                }
+            }
+
+            repL = repeatingFragments.length;
+        }
+
+
+        return [repeatingFragments, multiplier];
+        // possible results:
+        // 1. find repeats and then message ends
+        // 2. finds repeats and then a fragment that doesnt fit
+        // 3. finds no repeats and repeatingFragments.length * (multiplier+1) > msgL
+
+    }
+
+    compressMessage(msg){
+        const msgFragments = msg.fragments;
+        const msgFragmentsL = msgFragments.length;
+        const fragments = [];
+
+        let msgFragmentHeadIdx = 0;
+        let multiplier;
+        let repeatingFragments;
+
+        while(true){
+            if (msgFragmentHeadIdx == msgFragmentsL-1){
+                fragments.push(msgFragments[msgFragmentHeadIdx]);
+                break;
+            }
+            else if (msgFragmentHeadIdx > msgFragmentsL-1){
+                break;
+            }
+            [repeatingFragments, multiplier] = this.getRepeatingFragments(
+                msgFragmentHeadIdx,
+                msgFragments
+            );
+            if (multiplier === 1){ // didnt find any repeats; move head one step further
+                fragments.push(msgFragments[msgFragmentHeadIdx]);
+                msgFragmentHeadIdx++;
+            }
+            else{
+                msgFragmentHeadIdx = msgFragmentHeadIdx + repeatingFragments.length * multiplier;
+                this.doCompression(multiplier, repeatingFragments, fragments);
+            }
+        }
+        msg.fragments = fragments;
+    }
+}
+
+const messageCompressor = new MessageCompressor();
+
 class ChatInterface{
     constructor(details){
 
@@ -106,6 +217,13 @@ class ChatInterface{
             this.syncTime = e.detail.value;
         });
 
+        window.addEventListener("settings.chat.compressRepeatingPhrases", e=>{
+            this.compressRepeatingPhrases = e.detail.value;
+        });
+
+        window.addEventListener("settings.chat.trimLongMessages", e=>{
+            this.trimLongMessages = e.detail.value;
+        });
 
         window.onresize = (event) => {
             this.scrollToBottom();
@@ -124,9 +242,18 @@ class ChatInterface{
             this.chatPausedIndicator.style.display = "none";
         });
 
+        this.chatLines.addEventListener("click", e=>{
+
+            if(e.target.classList.contains("msg-more-tooltip")){
+                e.target.nextElementSibling.classList.remove("hidden");
+                e.target.classList.add("hidden");
+            }
+        });
+
+
         document.addEventListener("keydown", e=>{
             if(e.shiftKey || e.altKey || e.ctrlKey)return;
-            if(e.keyCode === 67){
+            if(e.key === "c"){
                 this.toggleChat();
             }
         });
@@ -157,30 +284,10 @@ class ChatInterface{
                         this.elem.style.top = pos.top;
                     }
                 }),
-                // utils.storage.getItem("userSettingsFontSize").then(fontSize=>{
-                //     fontSize = fontSize || 17;
-                //     this.chatCont.style.fontSize = fontSize+"px";
-                // }),
-                // utils.storage.getItem("userSettingsBgVisibility").then(val=>{
-                //     if (val==undefined || val == null) val = 65;
-                //     val = val / 100;
-                //     this.chatCont.style.backgroundColor = `rgba(41,41,41, ${val})`;
-                // }),
             ];
             Promise.all(promises).then(e=>{
                 this.elem.style.display = "block";
             });
-
-            // // these settings can be retrieved after chat is shown:
-            // utils.storage.getItem("userSettingsHiddenUsers").then(val=>{
-            //     if (val==undefined || val == null) return;
-            //     this.hiddenUsers = new Set(val);
-            // });
-
-            // utils.storage.getItem("userSettingsHiddenRegexes").then(val=>{
-            //     if (val==undefined || val == null) return;
-            //     this.hiddenRegexes = val.map(r=>new RegExp(r));
-            // });
         }
     }
 
@@ -215,7 +322,38 @@ class ChatInterface{
         else{
             color = "#C4BBBF";
         }
-        let text = this.emotes.replaceWithEmotes(msg.fragments);
+        const parts = [];
+        let fragment, emote;
+        for(fragment of msg.fragments){
+            const text = fragment.text;
+            if (text.startsWith("https://")){
+                parts.push(`<a target="_blank" href="${text}">${text}</a>`);
+            }
+            else if(fragment.type === "repeatingSegmentStart"){
+                parts.push("<span class='repeating-phrase'>");
+            }
+            else if(fragment.type === "repeatingSegmentEnd"){
+                parts.push(`<span class='repeating-amount'>x${fragment.amount}</span></span>`);
+            }
+            else{
+                emote = this.emotes.getEmoteFromFragment(fragment);
+                if(emote){
+                    parts.push(emote);
+                }
+                else{
+                    parts.push(text);
+                }
+            }
+        }
+        if (this.trimLongMessages){
+            if(parts.length > 15){
+                const rest = parts.splice(12);
+                parts.push(`<span title="Show whole message" class="msg-more-tooltip">...</span><span class="hidden">${rest.join(" ")}</span>`);
+                // parts.push(`<span title="${rest.join(" ");}" class='msg-more-tooltip'>...</span>`);
+            }
+        }
+        const text = parts.join(" ");
+
         let badges = "";
         if(msg.badges){
             badges = this.getBadgeElems(msg.badges);
@@ -228,6 +366,9 @@ class ChatInterface{
         if (this.msgIsHidden(msg)) {
             this.hiddenCount++;
             return;
+        }
+        if (this.compressRepeatingPhrases){
+            messageCompressor.compressMessage(msg);
         }
         let elem = msg.elem;
         if(!elem){

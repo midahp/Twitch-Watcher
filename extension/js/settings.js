@@ -5,6 +5,7 @@ export const settings = {
     "access_token": "uwligpfpzi8n3m3j7d7qd97ld5x801", // expires on Feb 15 2021 
     mode: "video",
     hlsConfig: {
+        "autoStartLoad": false,
         "maxBufferLength": 60,  // seconds
         "maxMaxBufferLength": 600, // seconds
         "maxBufferSize": 1e+6 * 70, // bytes
