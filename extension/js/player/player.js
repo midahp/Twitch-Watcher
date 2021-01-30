@@ -328,6 +328,7 @@ class HlsPlayer extends Player{
 
     async start(){
         this.chat.start(this.media.config.startPosition);
+        // this.components.playerButtons.showPlay();
         this.stream.loadHls(this.videoElem, ()=>{
             this.volume = this.media.config.volume;
             this.updateComponents();

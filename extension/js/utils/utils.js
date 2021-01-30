@@ -311,6 +311,9 @@ class Utility{
     }
 
     secsToHMS(secs){
+        if(isNaN(secs)){
+            return "?:?:?";
+        }
         let values = [];
 
         let value = Math.floor(secs / 3600);
