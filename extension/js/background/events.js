@@ -23,7 +23,7 @@ function addListeners(){
         }
     });
 
-    browser.browserAction.onClicked.addListener(function(tab) {
+    browser.action.onClicked.addListener(function(tab) {
         browser.tabs.getSelected(tab=>{
             actions.openList(tab.index+1);
         });
@@ -47,4 +47,4 @@ function addListeners(){
 
 
 
-addListeners();
+export {addListeners};

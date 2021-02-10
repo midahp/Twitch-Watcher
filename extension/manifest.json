@@ -1,25 +1,26 @@
 {
     "background": {
-        "page": "js/background/background.html",
-        "persistent": true
+        "service_worker": "background.js"
     },
     "description": "Browse and Watch Twitch Livestreams/Videos with chat",
     "incognito": "split",
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "Twitch Watcher",
+
     "permissions": [
-        "*://*/*",
+        "tabs",
         "storage",
-        "unlimitedStorage",
-        "webRequest",
-        "webRequestBlocking"
+        "unlimitedStorage"
+    ],
+    "host_permissions": [
+        "*://*/*"
     ],
     "short_name": "TwW",
-    "browser_action": {
+    "action": {
       "default_icon": {
         "32": "resources/icons/favicon-v1.png"
       }
     },
-    "update_url": "https://clients2.google.com/service/update2/crx",
+    "update_url": "http://0.0.0.0",
     "version": "1"
 }
