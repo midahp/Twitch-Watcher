@@ -385,7 +385,7 @@ class VodPlayer extends HlsPlayer{
     }
 
     setDocumentTitle(){
-        document.title = `${this.media.channelDisplay} - ${utils.onlyAscii(this.media.videoTitle)} - ${APP_NAME}`;
+        document.title = `${this.media.channelDisplay} - ${this.media.videoTitle} - ${APP_NAME}`;
     }
 
     async loadMedia(){

@@ -1,6 +1,8 @@
 import { h, Component, render, createRef } from '../lib/preact.module.js';
 import htm from '../lib/htm.module.js';
 
+import {utils} from '../utils/utils.js';
+
 import {RouterComponent} from './router.js';
 import {Interface} from './interface.js';
 
@@ -31,6 +33,8 @@ class App extends Component{
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    render(html`<${App} page="" />`, document.body);
+    utils.ready.then(()=>{
+        render(html`<${App} page="" />`, document.body);
+    });
 });
 
