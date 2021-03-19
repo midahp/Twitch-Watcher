@@ -21,6 +21,8 @@ const html = htm.bind(h);
 
 
 class LiveHelix extends CardsPage{
+    totalCardHeight = 299;
+
     endpoint = new HelixEndpoint("streams")
 
     async init(){

@@ -217,6 +217,7 @@ class QualityOptions extends Component{
     }
 
     loadQualityOptions(qualityOptions, auto=true){
+        this.elem.innerHTML = "";
         let chunkedElem;
         this.qualityOptions = qualityOptions;
         this.qualityOptions.forEach(q=>{

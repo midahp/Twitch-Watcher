@@ -34,6 +34,8 @@ const clipBackDays = {
 const defaultClipBackDays = "7";
 
 class Channel extends CardsPage{
+    totalCardHeight = 291;
+
     videosEndpoint = new HelixEndpoint("userVideos");
     clipsEndpoint = new HelixEndpoint("clips");
 

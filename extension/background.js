@@ -18,6 +18,7 @@ const actions = new Actions();
 
 const defaultData = {
     "lastSetLangCode": "",
+    "settings.video.noLiveAds": false,  // restricts the quality to max 480p but doesn't show "ads" (purple screen)
     "users": {},
     "games": {},
     "resumePositions": {},

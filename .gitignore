@@ -1,4 +1,7 @@
 /extension.crx
+*todo.txt
+*.notes
+.vscode
 /extension.pem
 TODO
 scripts/.venv

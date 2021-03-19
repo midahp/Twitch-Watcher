@@ -172,7 +172,7 @@ a:visited{
     margin: 0;
 }
 .card{
-    margin: .7em;
+    margin: 11px;
     max-width: 320px;
     padding: 1em;
     background: #2b2b2b;
@@ -322,7 +322,7 @@ select:focus{
 }
 .card--game .thumb-container{
     width: 200px;
-    height: 266.6px;
+    height: 266px;
 }
 img.card-thumb{
     max-width: 100%;

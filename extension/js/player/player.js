@@ -458,11 +458,36 @@ class LivePlayer extends HlsPlayer{
             "chatElem": this.chatElem,
         });
 
+        let noAds = await utils.storage.getItem("settings.video.noLiveAds");
+        await this.loadStream(asciiChannel, noAds);
+
+        window.addEventListener("settings.video.noLiveAds", e=>{
+            const v = e.detail.value;
+            if (v != noAds){
+                noAds = v;
+                this.loadStream(asciiChannel, v);
+            }
+        });
+
         await this.media.makeConfig();
 
-        const manifestUrl = await gqlApi.getStreamManifestUrl(asciiChannel);
-        this.stream = new Stream(manifestUrl, this.media.config);
+    }
 
+    async loadStream(asciiChannel, noAds){
+        const manifestUrl = await gqlApi.getStreamManifestUrl(asciiChannel, noAds);
+        if (this.stream){
+            const hls = this.stream.hls;
+            this.pause();
+            hls.stopLoad();
+            const media = hls.media;
+            hls.detachMedia();
+            hls.url = undefined;
+            this.stream.manifestUrl = manifestUrl;
+            hls.attachMedia(media);
+        }
+        else{
+            this.stream = new Stream(manifestUrl, {});
+        }
     }
 
     // setCurrentTotalTime(){

@@ -93,17 +93,62 @@ class CardsPage extends Component{
 
     onScroll = e=>{
         if(this.loading)return;
-        if(utils.percentageScrolled()>95){
+        if(utils.percentageScrolled()>85){
             this.loadMore();
         }
     }
 
+    onKeyDown = e=>{
+        if(document.activeElement && document.activeElement.tagName=="INPUT") return;
+
+        const headerHeight = 170;
+        const y = window.scrollY;
+        const afterHeaderY = y - headerHeight;
+        const totalCardHeight = this.totalCardHeight || 299;
+        let sign;
+        switch (e.key){
+            case "ArrowUp":
+                sign = -1;
+                break;
+            case "ArrowDown":
+                sign = 1;
+                break;
+            default:
+                return;
+        }
+        e.preventDefault()
+        let newYPos;
+        if (y<headerHeight){
+            if (sign == 1){
+                newYPos = headerHeight;
+            }
+            else{
+                newYPos = 0;
+            }
+        }
+        else if (y == headerHeight && sign == -1){
+            newYPos = 0;
+        }
+        else{
+            const mul = parseInt(afterHeaderY / totalCardHeight) + sign;
+            newYPos = headerHeight + mul * totalCardHeight;
+        }
+        scroll({
+            top: newYPos,
+            // behavior: "smooth",
+        });
+    }
+
     componentDidMount(){
         window.addEventListener("scroll", this.onScroll);
+
+        window.addEventListener("keydown", this.onKeyDown);
     }
 
     componentWillUnmount(){
         window.removeEventListener("scroll", this.onScroll);
+        
+        window.removeEventListener("keydown", this.onKeyDown);
     }
 
     componentDidUpdate(prevProps) {

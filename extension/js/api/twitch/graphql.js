@@ -93,7 +93,7 @@ class GraphqlApi{
 
     }
 
-    async accessToken(type, id){
+    async accessToken(type, id, noAds=false){
         const vars = {
             "login": "",
             "vodID": "",
@@ -104,7 +104,12 @@ class GraphqlApi{
         let login, vodID, isLive, isVod, playerType;
         if(type == "live"){
             vars.login = id;
-            vars.playerType = "embed";
+            if (noAds){
+                vars.playerType = "thunderdome";
+            }
+            else{
+                vars.playerType = "embed";
+            }
             vars.isLive = true;
         }
         else if(type == "vod"){
@@ -147,8 +152,8 @@ class GraphqlApi{
         return url;
     }
 
-    async getStreamManifestUrl(sId){
-        const authP = await this.accessToken("live", sId);
+    async getStreamManifestUrl(sId, noAds=false){
+        const authP = await this.accessToken("live", sId, noAds);
         const url = utils.buildUrl(`https://usher.ttvnw.net/api/channel/hls/${sId.toLowerCase()}.m3u8`, {
             "p": parseInt(Math.random() * 999999),
             "player_backend": "mediaplayer",

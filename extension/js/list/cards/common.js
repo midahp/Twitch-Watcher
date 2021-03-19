@@ -50,7 +50,7 @@ class Card extends Component{
     }
 
     testFilteredOut(query){
-        if(!query) return false;
+        if(!query || !this.state) return false;
         const d = this.state.data;
         if(!Object.keys(d).length) return false;
 

@@ -27,13 +27,21 @@ class Stream{
                     hls.nextLevel = startLevel;
                     cb && cb();
                     hls.startLoad(this.config.startPosition);
-                });
-                window.addEventListener("settings.video.playbackSpeed", e=>{
-                    videoElem.playbackRate = e.detail.value;
+                    if(videoElem.paused){
+                        videoElem.play()
+                        setTimeout(()=>{
+                            hls.trigger(Hls.Events.LEVEL_SWITCHED, {
+                              level: startLevel,
+                            });
+                        }, 500);
+                    };
                 });
                 // hls.off(Hls.Events.MANIFEST_PARSED, manifestParsedHandler);
             };
             hls.on(Hls.Events.MANIFEST_PARSED, manifestParsedHandler);
+        });
+        window.addEventListener("settings.video.playbackSpeed", e=>{
+            videoElem.playbackRate = e.detail.value;
         });
     }
 
@@ -44,6 +52,7 @@ class Stream{
     }
 
     onlevelchange = fn=>{
+        this.qualityUiChangeFn = fn;
         this.hls.on(Hls.Events.LEVEL_SWITCHED, (e, data)=>{
             fn(data.level);
         });

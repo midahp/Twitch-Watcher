@@ -1,6 +1,7 @@
 import {settings} from '../settings.js';
 import { h, Component, render, createRef } from '../lib/preact.module.js';
 import htm from '../lib/htm.module.js';
+import { MODES } from './constants.js';
 
 import {utils} from '../utils/utils.js';
 
@@ -363,6 +364,29 @@ class PauseOnClick extends VideoSettinsgEntry{
     }
 }
 
+class NoLiveAds extends VideoSettinsgEntry{
+    name = "noLiveAds"
+    label = "No Live Ads (limits quality to 480p)"
+
+    default = false
+
+    clean(e){
+        return e.target.checked;
+    }
+
+    render(props, state){
+        return html`
+            <div class="user-settings-entry">
+                <label class="label" for="settings_noLiveAds">
+                    ${this.label}
+                    <input type="checkbox" id="settings_noLiveAds" checked=${state.value} onInput=${this.handleInput} onChange=${this.handleChange} />
+                </label>
+            </div>    
+        `;
+    }
+}
+
+
 class ArrowKeysSeek extends VideoSettinsgEntry{
     name = "arrowKeysSeek"
     label = "Seek amount with ← →"
@@ -432,13 +456,14 @@ class UserSettings extends Component{
                     <div class="category-label">Chat</div>
                     <${FontSizeSetting} />
                     <${BgVisibilitySetting} />
-                    <${SyncTimeSetting} />
+                    ${props.mode == MODES.VOD ? html`<${SyncTimeSetting} />` : ""}
                     <${ChatFilters} />
                     <${TrimLongMessages} />
                     <${CompressRepeatingPhrases} />
                 </div>
                 <div class="user-settings-category">
                     <div class="category-label">Video</div>
+                    ${props.mode == MODES.LIVE ? html`<${NoLiveAds} />` : ""}
                     <${PlaybackSpeedEntry} />
                     <${PauseOnClick} />
                     <${ArrowKeysSeek} />
@@ -449,8 +474,8 @@ class UserSettings extends Component{
     }
 }
 
-function renderUserSettingsInto(elem){
-    render(html`<${UserSettings} />`, elem);
+function renderUserSettingsInto(elem, info){
+    render(html`<${UserSettings} mode=${info.mode} />`, elem);
 }
 
 

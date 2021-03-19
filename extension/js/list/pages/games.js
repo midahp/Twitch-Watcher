@@ -22,6 +22,7 @@ const html = htm.bind(h);
 
 
 class Games extends CardsPage{
+    totalCardHeight = 341;
     endpoint = new HelixEndpoint("topGames");
 
     async prepareData(data){

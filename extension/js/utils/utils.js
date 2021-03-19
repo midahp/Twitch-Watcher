@@ -20,7 +20,17 @@ const monthShortNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ];
 
-
+class HTMLProtoExtra{
+    addEventListenerOnce(){
+        HTMLElement.prototype.addEventListenerOnce = (event, cb)=>{
+            const wrapped = e=>{
+                this.removeEventListener(event, wrapped);
+                cb(e);
+            };
+            this.addEventListener(event, wrapped);
+        };
+    }
+}
 
 
 class FixedSizeArray{

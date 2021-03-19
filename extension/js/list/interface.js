@@ -26,6 +26,7 @@ class Searcher extends Component{
     }
 
     closeSuggestion(){
+        this.inputRef.current.blur();
         this.setState({
             suggestionsOpen: false,
             selectedIdx: -1,
@@ -42,27 +43,28 @@ class Searcher extends Component{
         document.removeEventListener('keydown', this.handleSelectChange);
     }
 
+    searchCurrentInputValue() {
+        const val = this.inputRef.current.value.trim();
+        if(!val) return;
+        route(`/search/${encodeURIComponent(val)}`);
+        this.closeSuggestion();
+    }
+
+    handledKeys = new Set(["ArrowDown", "ArrowUp", "Enter", "Escape"]);
     handleSelectChange = e=>{
         if(document.activeElement != this.inputRef.current) return;
-        if(e.key == "ArrowDown"){
-            e.preventDefault();
+        if (!this.handledKeys.has(e.key)) return;
+        e.preventDefault();
+        if(e.key == "ArrowDown" || e.key == "ArrowUp"){
+            let sign = 1;
+            if (e.key == "ArrowUp") sign = -1;
 
             this.setState((state, props)=>{
-                let idx = state.selectedIdx + 1;
+                let idx = state.selectedIdx + sign;
                 if(idx >= state.suggestions.length){
                     idx = -1;
                 }
-                return {
-                    "selectedIdx": idx,
-                }
-            });
-        }
-        else if(e.key == "ArrowUp"){
-            e.preventDefault();
-
-            this.setState((state, props)=>{
-                let idx = state.selectedIdx - 1;
-                if(idx < -1){
+                else if (idx < -1){
                     idx = state.suggestions.length-1;
                 }
                 return {
@@ -71,31 +73,22 @@ class Searcher extends Component{
             });
         }
         else if(e.key == "Enter"){
-            e.preventDefault();
-            this.inputRef.current.blur();
             let elem = this.wrapperRef.current.querySelector(".suggestion--selected");
             if(elem){
+                this.choseSuggestion(this.state.selectedIdx);
                 elem.querySelector("a").click();
             }
             else{
-                const val = this.inputRef.current.value.trim();
-                if(!val) return;
-                if(e.key === "Enter"){
-                    route(`/search/${val}`);
-                }
+                this.searchCurrentInputValue();
             }
-            this.choseSuggestion(this.state.selectedIdx);
         }
         else if (e.key == "Escape"){
-            this.inputRef.current.blur();
             this.closeSuggestion();
         }
     }
 
     handleSearchClick = e=>{
-        const val = this.inputRef.current.value.trim();
-        if(!val) return;
-        route(`/search/${val}`);
+        this.searchCurrentInputValue();
     }
 
     handleInput = e=>{
@@ -106,6 +99,7 @@ class Searcher extends Component{
             gqlApi.searchSuggestions(query).then(results=>{
                 let result;
                 this.setState({
+                    selectedIdx: -1,
                     suggestions: results,
                     suggestionsOpen: Boolean(results.length)
                 });
@@ -129,7 +123,7 @@ class Searcher extends Component{
     }
 
     handleClickOutside = e=>{
-        if (this.wrapperRef && !this.wrapperRef.current.contains(event.target)) {
+        if (this.wrapperRef && !this.wrapperRef.current.contains(e.target)) {
             this.setState({
                 suggestionsOpen: false
             });

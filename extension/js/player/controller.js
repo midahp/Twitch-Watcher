@@ -52,15 +52,15 @@ class Controller{
         await this.player.load(info);
         const keyBindings = new KeyBindings(this.player);
         keyBindings.handlers();
-        this.handlers();
+        this.handlers(info);
         this.player.setDocumentTitle();
     }
 
-    handlers(){
+    handlers(info){
         elements.userSettingsButton.addEventListener("click",e=>{
             elements.userSettingsContainer.classList.toggle("user-settings-container--hidden");
         });
-        renderUserSettingsInto(elements.userSettingsContainer);
+        renderUserSettingsInto(elements.userSettingsContainer, info);
     }
 
     loadClip(cid){
