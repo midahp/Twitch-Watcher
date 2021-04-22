@@ -26,17 +26,29 @@ class Storage{
     
     sendToBg(msg, expectResponse=true){
         msg.event = "storage";
+        let response = "notReady";
+
+        let p = new Promise(resolve=>{
+            let fn = response=>{
+                if (response == "notReady"){
+                    setTimeout(()=>{
+                        browser.runtime.sendMessage(msg, fn);
+                    }, 100);
+                }
+                else{
+                    resolve(response)
+                }
+            }
+            browser.runtime.sendMessage(msg, fn);
+            //     resolve(response);
+            // });
+        });
         if (expectResponse){
-            let p = new Promise(resolve=>{
-                browser.runtime.sendMessage(msg, response => {
-                    resolve(response);
-                });
-            });
             return p;
         }
-        else{
-            browser.runtime.sendMessage(msg);
-        }
+        // else{
+        //     delete p;
+        // }
     }
 
     setItem(key, val){

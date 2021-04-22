@@ -44,7 +44,13 @@ class ReChat{
             }
             const fragments = [];
             let fragment, word;
-            for (fragment of comment["message"]["fragments"]){
+            let msgFragments = comment["message"]["fragments"];
+            if (!msgFragments) {
+                msgFragments = [{
+                    text: comment["message"]["body"],
+                }];
+            }
+            for (fragment of msgFragments){
                 if(fragment.emoticon){
                     fragments.push(fragment);
                     continue;

@@ -145,6 +145,7 @@ class ApiCache{
 const apiCache = new ApiCache();
 
 const storageMessageHandler = (request, sender, sendResponse) => {
+
     switch(request.op){
         case "get":
             sendResponse(storage.data[request.key]);
@@ -152,6 +153,7 @@ const storageMessageHandler = (request, sender, sendResponse) => {
         case "set":
             storage.data[request.key] = request.val;
             storage.needsSaving.add(request.key);
+            sendResponse("success");
             break;
         case "getMultiple":
             let key;
@@ -174,6 +176,7 @@ const storageMessageHandler = (request, sender, sendResponse) => {
                 }
                 obj = obj[key];
             }
+            sendResponse("success");
             break;
 
         case "getResumePoint":
@@ -182,15 +185,19 @@ const storageMessageHandler = (request, sender, sendResponse) => {
         case "setResumePoint":
             storage.data.resumePositions[request.vid] = request.secs;
             storage.needsSaving.add("resumePositions");
+            sendResponse("success");
             break;
         case "setFav":
             storage.setFav(request);
+            sendResponse("success");
             break;
         case "setFavs":
             storage.setFavs(request);
+            sendResponse("success");
             break;
         case "unsetFav":
             storage.unsetFav(request);
+            sendResponse("success");
             break;
         case "isFaved":
             sendResponse(storage.data["favourites"][request.type][request.ident]);
@@ -200,6 +207,7 @@ const storageMessageHandler = (request, sender, sendResponse) => {
             break;
         case "setUser":
             storage.data["users"][request.id] = request.user;
+            sendResponse("success");
             // storage.needsSaving.add("users");
             break;
         case "getApiCache":
@@ -207,14 +215,17 @@ const storageMessageHandler = (request, sender, sendResponse) => {
             break;
         case "setApiCache":
             apiCache.setItem(request.id, request.item);
+            sendResponse("success");
             break;
         case "addHiddenGame":
             storage.data["hiddenGames"][request.id] = true;
             storage.saveStorage({"hiddenGames": storage.data.hiddenGames});
+            sendResponse("success");
             break;
         case "removeHiddenGame":
             delete storage.data["hiddenGames"][request.id];
             storage.saveStorage({"hiddenGames": storage.data.hiddenGames});
+            sendResponse("success");
             break;
         case "getGames":
             sendResponse(storage.data["games"]);
@@ -225,6 +236,7 @@ const storageMessageHandler = (request, sender, sendResponse) => {
         case "setGame":
             storage.data["games"][request.id] = request.game;
             storage.needsSaving.add("games");
+            sendResponse("success");
             break;
         case "setAllData":
             storage.data = request.data;
@@ -233,6 +245,8 @@ const storageMessageHandler = (request, sender, sendResponse) => {
                 "users": {},
             });
             storage.needsSaving.clear();
+            sendResponse("success");
+
             break;
         case "getAllData":
             sendResponse(storage.data);
@@ -242,7 +256,12 @@ const storageMessageHandler = (request, sender, sendResponse) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.event === "storage"){
-        storageMessageHandler(request, sender, sendResponse);
+        if (!storage.ready){
+            sendResponse("notReady");
+        }
+        else{
+            storageMessageHandler(request, sender, sendResponse);
+        }
     }
     else if (request.event === "readyCheck"){
         sendResponse(storage.ready);

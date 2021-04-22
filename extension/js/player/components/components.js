@@ -239,8 +239,10 @@ class QualityOptions extends Component{
 
     updateCurrentQuality(level){
         let q = this.qualityOptions[level];
-        let option = this.elem.querySelector(`option[value="${q.name}"]`);
-        if (option) option.selected = true;
+        if (q){
+            let option = this.elem.querySelector(`option[value="${q.name}"]`);
+            if (option) option.selected = true;
+        }
     }
 
     getQualityIndex(name){
