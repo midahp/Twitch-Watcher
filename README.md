@@ -1,6 +1,3 @@
-> This is a fork of the abandoned repository at github.com/suidin/tw-vods
-> The player remained the same for the most part, but the directory was changed a lot and now also uses preact
-
 This is a simple Chrome/Firefox Extension that is an alternative UI and player for content from twitch.tv.
 This is supposed to only implement the minimum required to watch livestreams/videos, without all the other things twitch.tv has to offer.
 
