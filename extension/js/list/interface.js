@@ -236,6 +236,7 @@ class Interface extends Component {
                     <div class="top-links-left">
                         <a class="top-link" href="#/live/0">Unlisted Streams</a>
                         <a class="top-link" href="#/hidden-games">Hidden Games</a>
+                        <a class="top-link" href="#/hidden-users">Hidden Users</a>
                     </div>
                     <div class="top-links-right">
                         <${ImportExport} />

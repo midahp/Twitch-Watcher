@@ -453,6 +453,10 @@ class Utility{
         return Math.floor(window.pageYOffset/(this.getDocHeight() - window.innerHeight) * 100);
     }
 
+    bottomHeightLeft(){
+        return this.getDocHeight() - (window.pageYOffset + window.innerHeight);
+    }
+
     assurePromise(p){
         // if its already a promise; return as is
         if(p["then"]){

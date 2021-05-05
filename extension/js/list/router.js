@@ -4,7 +4,7 @@ import Router from '../lib/preact-router.js';
 import {route} from '../lib/preact-router.js';
 import { createHashHistory } from '../lib/history.js';
 
-import {LiveHelix} from './pages/streams.js';
+import {LiveHelix, HiddenUsers} from './pages/streams.js';
 import {FavouritesPage} from './pages/favourites.js';
 import {Channel} from './pages/channel.js';
 import {Games, HiddenGames} from './pages/games.js';
@@ -53,6 +53,7 @@ export const RouterComponent = () => html`
         <${Channel} path="/channel/:userId/:videoType/:clipBackDays?" />
         <${Games} path="/games" />
         <${HiddenGames} path="/hidden-games" />
+        <${HiddenUsers} path="/hidden-users" />
         <${WatchLaterPage} path="/watch-later" />
         <${SearchResults} path="/search/:query" />
         <${DefaultHandler} default />

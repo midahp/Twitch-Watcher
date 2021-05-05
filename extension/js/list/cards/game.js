@@ -21,7 +21,7 @@ class GameCard extends Card{
         let game = state.data;
 
         return html`
-            <div ref=${this.rootRef} class="card card--game${this.state.gameHidden ? ' card--hidden': ''}${state.filteredOut ? ' card--filtered-out': ''}">
+            <div ref=${this.rootRef} class="card card--game${this.state.hidden ? ' card--hidden': ''}${state.filteredOut ? ' card--filtered-out': ''}">
                 <a class="" href="#/live/${game.id}">
                   <div class="thumb-container">
                     <div class="img-container">
@@ -29,9 +29,7 @@ class GameCard extends Card{
                     </div>
                   </div>
                 </a>
-                <span class="card-action card-hide">
-                    <${HiddenElem} id=${game.id} gameComponent=${this} />
-                </span>
+                <${HiddenElem} type="game" id=${game.id} component=${this} />
                 <span class="card-action card-fav">
                     <${FavouriteIcon} ident=${game.id} type="games" />
                 </span>

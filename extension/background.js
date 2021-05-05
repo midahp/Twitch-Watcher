@@ -23,6 +23,7 @@ const defaultData = {
     "games": {},
     "resumePositions": {},
     "hiddenGames": {},
+    "hiddenStreams": {},
     "lastChatPos": {left:0,top:0},
     "lastChatDim": {width: "300px", height: "500px"},
     "lastSetBitrate": "Auto",
@@ -225,6 +226,16 @@ const storageMessageHandler = (request, sender, sendResponse) => {
         case "removeHiddenGame":
             delete storage.data["hiddenGames"][request.id];
             storage.saveStorage({"hiddenGames": storage.data.hiddenGames});
+            sendResponse("success");
+            break;
+        case "addHiddenStream":
+            storage.data["hiddenStreams"][request.id] = true;
+            storage.saveStorage({"hiddenStreams": storage.data.hiddenStreams});
+            sendResponse("success");
+            break;
+        case "removeHiddenStream":
+            delete storage.data["hiddenStreams"][request.id];
+            storage.saveStorage({"hiddenStreams": storage.data.hiddenStreams});
             sendResponse("success");
             break;
         case "getGames":

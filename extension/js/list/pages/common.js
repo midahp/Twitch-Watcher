@@ -93,7 +93,7 @@ class CardsPage extends Component{
 
     onScroll = e=>{
         if(this.loading)return;
-        if(utils.percentageScrolled()>85){
+        if(utils.bottomHeightLeft()< 450){
             this.loadMore();
         }
     }

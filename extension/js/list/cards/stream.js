@@ -4,6 +4,7 @@ import htm from '../../lib/htm.module.js';
 
 import {utils} from '../../utils/utils.js';
 import {Card} from './common.js';
+import {HiddenElem} from '../hidden.js';
 
 
 const html = htm.bind(h);
@@ -20,13 +21,14 @@ class StreamCard extends Card{
         let stream = state.data;
 
         return html`
-            <div ref=${this.rootRef} class="card card--stream${state.filteredOut ? ' card--filtered-out': ''}">
+            <div ref=${this.rootRef} class="card card--stream${this.state.hidden ? ' card--hidden': ''}${state.filteredOut ? ' card--filtered-out': ''}">
                 <a class="ext-player-link" href="${stream.playerUrl}" target="_blank">
                   <div class="thumb-container">
                     <div class="img-container">
                       <img class="card-thumb" src="${state.loadThumbnail ? stream.thumb : ''}" />
                     </div>
                   </div>
+                  <${HiddenElem} type="user" id=${stream.userId} component=${this} />
                   <div class="card__overlay video-viewers">${stream.viewers} viewers</div>
                   <div class="card__overlay video-length">${stream.uptime}</div>
                 </a>

@@ -206,6 +206,22 @@ class Storage{
         this.sendToBg(msg, false);
     }
 
+    addHiddenStream(id){
+        let msg = {
+            "op": "addHiddenStream",
+            "id": id,
+        }
+        this.sendToBg(msg, false);
+    }
+    removeHiddenStream(id){
+        let msg = {
+            "op": "removeHiddenStream",
+            "id": id,
+        }
+        this.sendToBg(msg, false);
+    }
+
+
     getApiCache(id){
         let msg = {
             "op": "getApiCache",

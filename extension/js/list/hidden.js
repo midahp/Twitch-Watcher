@@ -37,6 +37,36 @@ class HiddenGames{
 
 const hiddenGames = new HiddenGames();
 
+class HiddenStreams{
+    constructor(){
+        this.ready = this.populate();
+        this.hiddenSet = new Set();
+        // TODO: listen to route change and repopulate then
+    }
+
+    async populate(){
+        let hidden = await utils.storage.getItem("hiddenStreams");
+        this.hiddenList = Object.keys(hidden);
+        this.hiddenSet = new Set(this.hiddenList);
+    }
+
+    isHidden(id){
+        return this.hiddenSet.has(id);
+    }
+
+    add(id){
+        this.hiddenSet.add(id);
+        utils.storage.addHiddenStream(id);
+    }
+
+    remove(id){
+        this.hiddenSet.delete(id);
+        utils.storage.removeHiddenStream(id);
+    }
+}
+
+const hiddenStreams = new HiddenStreams();
+
 
 class HiddenList extends Component{
     constructor(props){
@@ -63,9 +93,17 @@ class HiddenList extends Component{
 class HiddenElem extends Component{
     constructor(props){
         super(props);
+
+        if (this.props.type == "game"){
+            this.hiddenManager = hiddenGames;
+        }
+        else {
+            this.hiddenManager = hiddenStreams;
+        }
+        this.type = this.props.type
         this.state = {
             "id": this.props.id,
-            "gameComp": this.props.gameComponent,
+            "component": this.props.component,
             "hidden": false,
         };
     }
@@ -73,41 +111,45 @@ class HiddenElem extends Component{
     componentDidMount(){
         const id = this.state.id;        
         if (!id) return;
-        if(hiddenGames.isHidden(id)){
+        if(this.hiddenManager.isHidden(id)){
             this.setState({
                 "hidden": true,
             });
-            this.state.gameComp.setState({"gameHidden": true});
+            this.state.component.setState({"hidden": true});
         }
     }
 
     handleElemClick = e=>{
+        e.preventDefault();
         const id = this.state.id;        
         const hidden = this.state.hidden;
         if (!id) return;
         if (hidden){
-            hiddenGames.remove(id);
+            this.hiddenManager.remove(id);
         }
         else{
-            hiddenGames.add(id);
+            this.hiddenManager.add(id);
         }
         this.setState({
             "hidden": !hidden
         });
-        this.state.gameComp.setState({"gameHidden": !hidden});
+        this.state.component.setState({"hidden": !hidden});
 
     }
 
     render(props, state){
-        let hiddenText = state.hidden ? 'Stop hidding this game' : 'Hide this game';
+        let componentName = this.props.type;
+        let hiddenText = state.hidden ? ('Stop hiding this '+componentName) : ('Hide this '+componentName);
 
         return html`
-            <span onClick=${this.handleElemClick} >
+        <span onClick=${this.handleElemClick} class="card-action card-hide">
+            <span>
                 ${hiddenText}
             </span>
+        </span>
         `;
     }
 }
 
 
-export {HiddenElem, HiddenList,hiddenGames};
+export {HiddenElem, HiddenList, hiddenGames, hiddenStreams};

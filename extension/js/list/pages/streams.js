@@ -15,6 +15,7 @@ import {FavouriteIcon} from '../favs.js';
 
 import {CardsPage, ReloadButton, ResultsFilter} from './common.js';
 import {StreamCard} from '../cards/stream.js';
+import {UserCard} from '../cards/user.js';
 
 
 const html = htm.bind(h);
@@ -213,9 +214,55 @@ class LiveHelix extends CardsPage{
 //     }
 // }
 
+class HiddenUsers extends Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            "users": []
+        }
+    }
+
+    componentDidMount(){
+
+        const catchHiddenStreams = async ()=>{
+            let hiddenStreams = await utils.storage.getItem("hiddenStreams");
+            hiddenStreams = Object.keys(hiddenStreams);
+            let users = await helixApi.getUsers(hiddenStreams);
+            users = Object.values(users);
+            this.setState({
+                "users": users,
+            });
+        }
+        catchHiddenStreams();        
+    }
+
+    render(props, state){
+        document.title = `Hidden Users - ${APP_NAME}`;
+        return html`
+            <div class="result-list">
+                <div class="result-top-bar">
+                    <div class="result-list-header result-list-header--h1">
+                        Hidden Users
+                    </div>
+                </div>
+                <div class="card-list card-list--users">
+                    ${state.users.map((g,i)=>{
+                        return html`
+                            <${UserCard} key=${i} data=${g} />
+                        `;
+                    })}
+                </div>
+            </div>
+        `;
+    }
+}
+
+
+
 export {
     // LiveGql,
     LiveHelix,
+    HiddenUsers,
     // GameGql,
     // LiveHelixGames,
 }

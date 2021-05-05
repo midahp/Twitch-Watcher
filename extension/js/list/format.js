@@ -1,7 +1,7 @@
 import {utils} from '../utils/utils.js';
 import {HelixEndpoint, helixApi} from '../api/twitch/helix.js';
 import {favourites} from './favs.js';
-import {hiddenGames} from './hidden.js';
+import {hiddenGames, hiddenStreams} from './hidden.js';
 
 class FormatHelper{
     getThumb(video){
@@ -190,6 +190,10 @@ class DataFormater{
 
         const formated = [];
         for (stream of data){
+            if(hiddenStreams.isHidden(stream.user_id)){
+                hidden++;
+                continue;
+            }
             let state = {};
             state.uptime = utils.twTimeStrToTimePassed(stream.started_at);
             let game = games[stream.game_id];
