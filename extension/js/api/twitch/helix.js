@@ -207,13 +207,16 @@ class HelixApi extends AbstractApi{
 
 const helixApi = new HelixApi();
 
+class PaginatedResultExhausted{
+
+}
 
 class HelixEndpoint{
     constructor(endpoint){
         this.endpoint = endpoint;
         this.lastCursor = null;
     }
-    _call(params, direction, cursor){
+    async _call(params, direction, cursor){
         if (params){
             this.lastParams = params;
         }
@@ -221,42 +224,33 @@ class HelixEndpoint{
             params = this.lastParams;
         }
 
-        let p = helixApi[this.endpoint](params, direction, cursor);
-        return p.then(r=>{
-            this.lastCursor = r.pagination && r.pagination.cursor;
-            this.lastData = r.data;
-            return r.data;
-        });
+        let r = await helixApi[this.endpoint](params, direction, cursor);
+
+        this.lastCursor = r.pagination && r.pagination.cursor;
+        this.lastData = r.data;
+        return r.data;
     }
 
-    call(params){
-        return this._call(params)
+    async call(params){
+        return this._call(params);
     }
 
-    next(){
-        return new Promise((resolve, reject)=>{
-            if(this.lastCursor){
-                this._call(null, "after", this.lastCursor).then(data=>{
-                    resolve(data);
-                });
-            }
-            else{
-                reject();
-            }
-        });
+    async next(){
+        if(this.lastCursor){
+            return this._call(null, "after", this.lastCursor);
+        }
+        else{
+            throw new PaginatedResultExhausted();
+        }
     }
 
-    previous(){
-        return new Promise((resolve, reject)=>{
-            if(this.lastCursor){
-                this._call(null, "before", this.lastCursor).then(data=>{
-                    resolve(data);
-                });
-            }
-            else{
-                reject();
-            }
-        });
+    async previous(){
+        if(this.lastCursor){
+            return this._call(null, "before", this.lastCursor);
+        }
+        else{
+            throw new PaginatedResultExhausted();
+        }
     }
 
 }

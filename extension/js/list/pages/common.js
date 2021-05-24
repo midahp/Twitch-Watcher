@@ -199,7 +199,6 @@ class CardsPage extends Component{
     }
 
     async load(){
-        this.startedLoading();
         this.setState({
             "entities": []
         });
@@ -210,37 +209,59 @@ class CardsPage extends Component{
             data = [];
         }
         else{
+            this.startedLoading();
+            let heightBefore = document.body.clientHeight;
             try{
                 data = await this.endpoint.call(params);
-                data = await this.prepareData(data);
-                this.setState({
-                    "entities": data
-                });
             }
             catch (err){
-                console.error(err);
+                this.finishedLoading();
+                return
             }
-        } 
-        this.finishedLoading();
+            let preparedData = await this.prepareData(data);
+            this.setState({
+                "entities": preparedData
+            }, ()=>{
+                if (data && data.length && document.body.scrollHeight <= window.innerHeight){
+                    this.loadMore();
+                }
+                else{
+                    this.finishedLoading();
+                }
+            });
+
+        }
     }
 
     async loadMore(){
         this.startedLoading();
+        let heightBefore = document.body.scrollHeight;
+        let data;
         try{
-            let data = await this.endpoint.next();
-            if(data && data.length){
-                data = await this.prepareData(data);
-                let entities = this.state.entities;
-                entities = entities.concat(data);
-                this.setState({
-                    "entities": entities
-                });
-            } 
+            data = await this.endpoint.next();
         }
         catch(err){
-            // console.error(err);
+            this.finishedLoading();
+            return;
         }
-        this.finishedLoading();
+        if(data && data.length){
+            data = await this.prepareData(data);
+            let entities = this.state.entities;
+            entities = entities.concat(data);
+            this.setState({
+                "entities": entities
+            }, ()=>{
+                if (document.body.scrollHeight <= heightBefore){
+                    this.loadMore();
+                }
+                else{
+                    this.finishedLoading();
+                }
+            });
+        }
+        else{
+            this.finishedLoading();
+        }
     }
 }
 

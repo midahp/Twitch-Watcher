@@ -213,12 +213,14 @@ class LiveHelix extends CardsPage{
 //         }
 //     }
 // }
+const liveUsersEndpoint = new HelixEndpoint("userStreams");
 
 class HiddenUsers extends Component{
     constructor(props){
         super(props);
         this.state = {
-            "users": []
+            "users": [],
+            "live": [],
         }
     }
 
@@ -229,8 +231,18 @@ class HiddenUsers extends Component{
             hiddenStreams = Object.keys(hiddenStreams);
             let users = await helixApi.getUsers(hiddenStreams);
             users = Object.values(users);
+
+            let live = [];
+            if (hiddenStreams.length){
+                hiddenStreams.splice(100); // max 100 favs for now to only make one api call for livestreams
+                live = await liveUsersEndpoint.call({
+                    "ids": hiddenStreams,
+                });
+                live = await dataFormater.helixStreams(live, true);
+            }
             this.setState({
-                "users": users,
+                users,
+                live,
             });
         }
         catchHiddenStreams();        
@@ -245,13 +257,35 @@ class HiddenUsers extends Component{
                         Hidden Users
                     </div>
                 </div>
-                <div class="card-list card-list--users">
-                    ${state.users.map((g,i)=>{
-                        return html`
-                            <${UserCard} key=${i} data=${g} />
-                        `;
-                    })}
-                </div>
+                ${  
+                    state.live.length ?
+                    html`
+                    <div class="result-list-header result-list-header--h2">
+                        Currently live
+                    </div>
+                    <div class="card-list card-list--streams">
+                        ${state.live.map((e,i)=>{
+                            return html`
+                                <${StreamCard} key=${i} data=${e} />
+                            `;
+                        })}
+                    </div>` : ''
+                }
+
+                ${  
+                    state.users.length ?
+                    html`
+                    <div class="result-list-header result-list-header--h2">
+                        All hidden users
+                    </div>
+                    <div class="card-list card-list--users">
+                        ${state.users.map((g,i)=>{
+                            return html`
+                                <${UserCard} key=${i} data=${g} />
+                            `;
+                        })}
+                    </div>` : ''
+                }
             </div>
         `;
     }

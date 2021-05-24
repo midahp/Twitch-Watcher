@@ -172,7 +172,7 @@ class DataFormater{
     }
 
 
-    async helixStreams(data, gameSpecific=false){
+    async helixStreams(data, ignoreHidden=false){
         let stream, game;
         let hidden = 0;
         let game_ids = new Set();
@@ -182,7 +182,7 @@ class DataFormater{
 
         let games = await helixApi.getGames(Array.from(game_ids));
         let hiddenGames;
-        if (!gameSpecific){
+        if (!ignoreHidden){
             hiddenGames = await utils.storage.getItem("hiddenGames");
         }
 
@@ -190,16 +190,21 @@ class DataFormater{
 
         const formated = [];
         for (stream of data){
-            if(hiddenStreams.isHidden(stream.user_id)){
-                hidden++;
-                continue;
-            }
             let state = {};
+            if (!ignoreHidden){
+                if(hiddenStreams.isHidden(stream.user_id)){
+                    hidden++;
+                    continue;
+                }
+            }
+            else {
+                state["ignoreHidden"] = true;   
+            }
             state.uptime = utils.twTimeStrToTimePassed(stream.started_at);
             let game = games[stream.game_id];
             state.game = {};
             if (game){
-                if(!gameSpecific && hiddenGames[game.id]){
+                if(!ignoreHidden && hiddenGames[game.id]){
                     hidden++;
                     continue
                 }

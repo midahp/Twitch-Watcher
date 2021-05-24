@@ -245,14 +245,14 @@ a:visited{
 }
 .card__overlay{
     position: absolute;
-    background-color: rgba(0,0,0,.6);
+    background-color: rgba(0,0,0,.8);
     padding: 0 .2em;
     font-size: .8em;
     color: white;
 }
 .card__overlay.video-length{
-    top:25px;
-    right: 25px;
+    top: 37px;
+    right: 20px;
 }
 .card__overlay.video-viewers{
     top:176px;

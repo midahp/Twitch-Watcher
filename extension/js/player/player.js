@@ -417,7 +417,7 @@ class VodPlayer extends HlsPlayer{
         // reload the playlist as long as the vod duration is changing. For vods of currently ongoing live streams
         if(this.media.videoStatus === "recorded") return;
         const videoRecordingAppendInterval = setInterval(()=>{
-            this.stream.hls.levelController.loadLevel();
+            this.stream.hls.levelController.loadPlaylist();
         }, 5*60*1000);
         let stillRecordingCount = 4;
         let durationThen = this.duration;
