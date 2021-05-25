@@ -2,7 +2,7 @@ export const settings = {
     DEBUG: true,
     clientId: "kimne78kx3ncx6brgo4mv6wki5h1ko",
     "2ndParty": "5xdruy8ydcweacjb297s2xxihfvix0",
-    "access_token": "s7y1vidraxi4af8nm5i7tq6y1z4qfl", // expires on 2021-07-03
+    "access_token": "e0suk23d3t2t246z1ulm3dzh18vcjk", // expires on 2021-07-28
     mode: "video",
     hlsConfig: {
         "autoStartLoad": false,

@@ -187,7 +187,6 @@ class DataFormater{
         }
 
         const timeParam = formatHelper.getThumbTimeParam();
-
         const formated = [];
         for (stream of data){
             let state = {};
